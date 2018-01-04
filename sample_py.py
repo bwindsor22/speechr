@@ -4,18 +4,16 @@ import re
 import os
 
 reddit = praw.Reddit('bot1')
- 
-subreddit = reddit.subreddit("test")
-
 
 #%% print comments
+"""
 submissions = list(subreddit.new(limit=5))
     
 for sub in submissions:
     sub.comments.replace_more(limit=0)
     for comment in sub.comments.list():
         print(comment.body)
-
+"""
 
 #%%
 if not os.path.isfile("posts_replied_to.txt"):
