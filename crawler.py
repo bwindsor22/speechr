@@ -49,26 +49,24 @@ class Crawler:
             print('--------------------------')
             print('scanning next sub: ' + hate_sub)
             print('--------------------------')
-            sleep(1)
-        
+                    
+            subreddit = self.reddit.subreddit(hate_sub)
+
             try:            
-                subreddit = self.reddit.subreddit(hate_sub)
-            except:
-                print(hate_sub + " is not found")
-                continue
-            
-            submissions = list(subreddit.new(limit=10))
-            for sub in submissions:
-                sub.comments.replace_more(limit=0)
-                for comment in sub.comments.list():
-                    i += 1
-                    if i % 100 == 0:
-                        print('processing comment # ' + str(i))
-                    score = self.CC.analyze(comment.body)
-                    if score > 0:
-                        print(comment.body)
-                        print('score: ' + str(score))
-        
+                submissions = list(subreddit.new(limit=10))
+
+                for sub in submissions:
+                    sub.comments.replace_more(limit=0)
+                    for comment in sub.comments.list():
+                        i += 1
+                        if i % 100 == 0:
+                            print('processing comment # ' + str(i))
+                        score = self.CC.analyze(comment.body)
+                        if score > 0:
+                            print(comment.body)
+                            print('score: ' + str(score))
+            except: 
+                print("error processing " + hate_sub)
 
 
 if __name__ == '__main__':
