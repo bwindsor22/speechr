@@ -10,8 +10,6 @@ import os
 import comment_classifier
 import hate_subreddit_finder
 import csv
-from time import sleep
-
 
 class Crawler:
     def __init__(self):
