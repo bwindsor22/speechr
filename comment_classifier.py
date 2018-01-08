@@ -15,6 +15,10 @@ class CommentClassifier:
         """
         Return a score greater than 0 for text which has an issue
         """
+        if text is None:
+            return 0
+        
+        #text = text.encode('ascii',errors='ignore')
         sentiment = self.get_negative_sentiment(text)
         slurs = self.get_slur_count(text)
         return slurs * sentiment

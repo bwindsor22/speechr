@@ -36,7 +36,15 @@ class TestCommentClassifier(unittest.TestCase):
         self.assertLess(self.CC.analyze(comments[0]), self.CC.analyze(comments[2]))
         self.assertLess(self.CC.analyze(comments[0]), self.CC.analyze(comments[1]))
 
-    def test_case(self):
+
+    def test_blank(self):
+        comments = [
+            ""
+            ]
+                
+        self.assertEqual(0, self.CC.analyze(comments[0]))
+        
+    def test_lettercase(self):
         comments = [
             "TeSt_sLur_1",
             "test_slur_2"

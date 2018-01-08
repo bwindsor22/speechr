@@ -10,12 +10,14 @@ import os
 import comment_classifier
 import hate_subreddit_finder
 import csv
+from time import sleep
 
 
 class Crawler:
     def __init__(self):
         self.reddit = praw.Reddit('bot1')
         slurs = self.load_csv_resource('racial_slurs')
+        slurs = list(itertools.chain.from_iterable(slurs))
         self.CC = comment_classifier.CommentClassifier(slurs)
         subreddits_to_scan = self.load_csv_resource('policing_subreddits')
         subreddits_to_scan = list(itertools.chain.from_iterable(subreddits_to_scan))
@@ -44,16 +46,17 @@ class Crawler:
             print('--------------------------')
             print('scanning next sub: ' + hate_sub)
             print('--------------------------')
-
+            sleep(1)
+            
             subreddit = self.reddit.subreddit(hate_sub)
-            submissions = list(subreddit.new(limit=5))
+            submissions = list(subreddit.new(limit=10))
             for sub in submissions:
                 sub.comments.replace_more(limit=0)
                 for comment in sub.comments.list():
                     i += 1
                     if i % 100 == 0:
                         print('processing comment # ' + str(i))
-                    score = self.CC.analyze(comment)
+                    score = self.CC.analyze(comment.body)
                     if score > 0:
                         print(comment.body)
                         print('score: ' + str(score))
