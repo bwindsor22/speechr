@@ -16,9 +16,12 @@ from time import sleep
 class Crawler:
     def __init__(self):
         self.reddit = praw.Reddit('bot1')
+        
         slurs = self.load_csv_resource('racial_slurs')
         slurs = list(itertools.chain.from_iterable(slurs))
+        
         self.CC = comment_classifier.CommentClassifier(slurs)
+        
         subreddits_to_scan = self.load_csv_resource('policing_subreddits')
         subreddits_to_scan = list(itertools.chain.from_iterable(subreddits_to_scan))
 
@@ -47,8 +50,13 @@ class Crawler:
             print('scanning next sub: ' + hate_sub)
             print('--------------------------')
             sleep(1)
+        
+            try:            
+                subreddit = self.reddit.subreddit(hate_sub)
+            except:
+                print(hate_sub + " is not found")
+                continue
             
-            subreddit = self.reddit.subreddit(hate_sub)
             submissions = list(subreddit.new(limit=10))
             for sub in submissions:
                 sub.comments.replace_more(limit=0)
