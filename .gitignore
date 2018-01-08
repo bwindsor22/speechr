@@ -1,2 +1,4 @@
 praw.ini
 .DS_Store
+*.pyc
+*~
