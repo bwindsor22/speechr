@@ -20,7 +20,9 @@ class CommentClassifier:
             return 0
         
         #text = text.encode('ascii',errors='ignore')
+        
         sentiment = self.get_negative_sentiment(text)
+        
         slurs = self.get_slur_count(text)
         violent_words = self.get_violent_word_count(text)
         return slurs * violent_words * sentiment
