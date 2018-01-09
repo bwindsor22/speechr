@@ -21,7 +21,8 @@ class Crawler:
         self.CC = comment_classifier.CommentClassifier(slurs)
         subreddits_to_scan = self.load_csv_resource('policing_subreddits')
         subreddits_to_scan = list(itertools.chain.from_iterable(subreddits_to_scan))
-
+        violent_words = self.load_csv_resource('violent_words')
+        violent_words = list(itertools.chain.from_iterable(violent_words))
         self.HRS = hate_subreddit_finder.HateSubredditFinder(self.reddit, subreddits_to_scan)
         
         

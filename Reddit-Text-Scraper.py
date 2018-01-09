@@ -69,7 +69,7 @@ def dothestuff():
 	# Checking whether "-nc" argument was used, downloads comments if not
 	if getcomments:
 		# Sets comments to sort by top rather than new
-		submission.comment_sort = 'top'
+		submission.comment_sort = 'controversial' # set to controversial 
 		# Gets rid of "More comments" attribute error by not trying to download those comments
 		submission.comments.replace_more(limit=0)
 		# Gets comments for the current submission
@@ -86,8 +86,9 @@ def dothestuff():
 	postslist.write(currentpost)
 
 # Gets and downloads submissions and comments, then adds them to the "Archive" html file in the current directory
+# set comments to download to 200
 if sortby is not None:
-	for submission in getattr(reddit.subreddit(subname), sortby)(limit=numberofposts):
+	for submission in getattr(reddit.subreddit(subname), sortby)(limit=200):
 		dothestuff()
 else:
 	for submission in reddit.subreddit(subname).submissions():
