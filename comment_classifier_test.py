@@ -8,7 +8,7 @@ import comment_classifier
 
 class TestCommentClassifier(unittest.TestCase):
     def setUp(self):
-        self.CC = comment_classifier.CommentClassifier(["Test_Slur_1", "Test_Slur_2"])
+        self.CC = comment_classifier.CommentClassifier(["Test_Slur_1", "Test_Slur_2"], ["A"])
         
     
     def test_false_positives_are_zero(self):

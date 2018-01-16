@@ -1,0 +1,2 @@
+psql postgres
+\c example

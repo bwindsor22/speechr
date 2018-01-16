@@ -19,17 +19,17 @@ class CommentClassifier:
         if text is None:
             return 0
         
-        #text = text.encode('ascii',errors='ignore')
         
         sentiment = self.get_negative_sentiment(text)
         
         slurs = self.get_slur_count(text)
         violent_words = self.get_violent_word_count(text)
-        return slurs * violent_words * sentiment
+        score = slurs * (violent_words + 1) * (sentiment + 1 )
+        return score
 
     def get_negative_sentiment(self, text):
         sentiment = self.analyzer.polarity_scores(text)['neg']
-        return sentiment + 1
+        return sentiment
 
     def get_slur_count(self, text):
         c = 0

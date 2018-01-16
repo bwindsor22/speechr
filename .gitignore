@@ -2,3 +2,4 @@ praw.ini
 .DS_Store
 *.pyc
 *~
+keypairname.pem

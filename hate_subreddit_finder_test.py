@@ -16,9 +16,9 @@ class TestCommentClassifier(unittest.TestCase):
     
     def test_HRS(self):
         lim = 20
-        hate_subs = self.HRS.find_hate_subreddits(lim)
+        hate_subs = self.HRS.find_unique_hate_subreddits(lim)
         print(hate_subs)
-        self.assertLess(0, len(hate_subs))
+        self.assertLess(0, hate_subs.size)
         
 if __name__ == '__main__':
     unittest.main()
