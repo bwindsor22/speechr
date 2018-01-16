@@ -1,2 +1,9 @@
+# on mac
 psql postgres
 \c example
+
+
+# on aws
+sudo su - postgres
+psql
+
