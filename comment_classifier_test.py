@@ -37,10 +37,13 @@ class TestCommentClassifier(unittest.TestCase):
         self.assertLess(self.CC.analyze(comments[0]), self.CC.analyze(comments[1]))
 
     def test_violent_words(self):
-        comments = ["assault", "massacre", "kill, multilate, violent words, violent_words_1"]
+        comments = ["assault", "massacre, kill, genocide", "peaceful words, world peace sheep shagger"]
         #test to make sure that a comment still gets a negative score even if there is no negative words
         self.assertLess(0,self.CC.analyze(comments[0])) # should be true
         self.assertLess(0,self.CC.analyze(comments[1]))
+        self.assertLess(0,self.CC.analyze(comments[2])) # should still give a negative score despite the text
+        
+        self.assertEquals(self.CC.analyze(comments[0]),self.CC.analyze(comments[2]))
 
     def test_blank(self):
         comments = [
