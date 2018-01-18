@@ -62,7 +62,7 @@ class Crawler:
             subreddit = self.reddit.subreddit(hate_sub)
 
             try:            
-                submissions = list(subreddit.new(limit=3))
+                submissions = list(subreddit.new(limit=50))
 
                 for sub in submissions:
                     sub.comments.replace_more(limit=0)
