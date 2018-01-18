@@ -8,7 +8,9 @@ import praw
 import itertools
 import os
 import csv
-
+import datetime
+import pandas as pd
+import numpy as np
 
 import comment_classifier
 import hate_subreddit_finder
@@ -41,14 +43,17 @@ class Crawler:
             for row in rdr:
                 slurs.append(row)
         return slurs
-                
+        
     def collect(self):
         print('collecting...')
         i = 0
         
-        hate_subs = self.HRS.find_unique_hate_subreddits(5)
+        hate_subs = self.HRS.find_unique_hate_subreddits(10)
         print('hate subs: ' + str(hate_subs))
         
+        columns = ['comment_id', 'created_utc', 'permalink', 'subreddit', 'vote_score',  'body', 'classifier_score']
+        self.potential_hate_comments = pd.DataFrame(data=np.zeros((0,len(columns))), columns=columns)
+
         for hate_sub in hate_subs:
             print('--------------------------')
             print('scanning next sub: ' + hate_sub)
@@ -57,7 +62,7 @@ class Crawler:
             subreddit = self.reddit.subreddit(hate_sub)
 
             try:            
-                submissions = list(subreddit.new(limit=10))
+                submissions = list(subreddit.new(limit=3))
 
                 for sub in submissions:
                     sub.comments.replace_more(limit=0)
@@ -67,6 +72,11 @@ class Crawler:
                             print('processing comment # ' + str(i))
                         score = self.CC.analyze(comment.body)
                         if score > 0:
+                            time = datetime.datetime.utcfromtimestamp( comment.created_utc )
+                            temp_df = pd.DataFrame([[comment.id, time, comment.permalink, hate_sub, \
+                                                     comment.score, comment.body, score]], \
+                                                   columns=columns)
+                            self.potential_hate_comments.append(temp_df, ignore_index=True)
                             print(comment.body)
                             print('score: ' + str(score))
             except: 
@@ -78,7 +88,9 @@ class Crawler:
         hate_sub_reports = self.HRS.get_hate_sub_reports(-1)
         DB.load_df(hate_sub_reports, 'hate_sub_reports', 'append')
 
-        
+        DB.load_df(self.potential_hate_comments, 'comments', 'append')
+
+
     def run(self):
         self.collect()
         self.load_to_db()
