@@ -8,6 +8,8 @@ import praw
 import itertools
 import os
 import csv
+import schedule
+import time
 
 
 import comment_classifier
@@ -85,4 +87,10 @@ class Crawler:
         
 if __name__ == '__main__':
     c = Crawler()
-    c.run()
+    
+    def job():
+        c.run()
+    
+    schedule.every().hour.do(job)
+    
+    

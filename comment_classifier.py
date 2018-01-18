@@ -39,7 +39,7 @@ class CommentClassifier:
                 c += 1
         return c
     
-    def get_violent_word_count(self,text):
+    def get_violent_word_count(self, text):
         i = 0
         for violent_word in self.violent_words:
             if violent_word.lower() in text.lower():
