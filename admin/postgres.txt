@@ -7,3 +7,6 @@ psql postgres
 sudo su - postgres
 psql
 
+# commands
+\c <db name> - connect
+\dt - list all tables in db

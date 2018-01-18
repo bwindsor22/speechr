@@ -62,7 +62,7 @@ class Crawler:
             subreddit = self.reddit.subreddit(hate_sub)
 
             try:            
-                submissions = list(subreddit.new(limit=50))
+                submissions = list(subreddit.new(limit=5))
 
                 for sub in submissions:
                     sub.comments.replace_more(limit=0)
@@ -76,7 +76,7 @@ class Crawler:
                             temp_df = pd.DataFrame([[comment.id, time, comment.permalink, hate_sub, \
                                                      comment.score, comment.body, score]], \
                                                    columns=columns)
-                            self.potential_hate_comments.append(temp_df, ignore_index=True)
+                            self.potential_hate_comments = self.potential_hate_comments.append(temp_df, ignore_index=True)
                             print(comment.body)
                             print('score: ' + str(score))
             except: 
@@ -87,7 +87,8 @@ class Crawler:
         
         hate_sub_reports = self.HRS.get_hate_sub_reports(-1)
         DB.load_df(hate_sub_reports, 'hate_sub_reports', 'append')
-
+        
+        print(self.potential_hate_comments)
         DB.load_df(self.potential_hate_comments, 'comments', 'append')
 
 
