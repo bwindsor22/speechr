@@ -34,7 +34,7 @@ class HateSubredditFinder:
         Identifies subreddits which are likely to contain hate speech
         """        
         
-        columns = ['place_submitted','subreddit_linked', 'ups', 'permalink', 'created_utc']
+        columns = ['submission_id', 'created_utc', 'place_submitted','subreddit_linked', 'vote_score', 'title', 'permalink']
         self.hate_sub_reports = pd.DataFrame(data=np.zeros((0,len(columns))), columns=columns)
 
         for to_scan in self.subreddits_to_scan:        
@@ -47,7 +47,8 @@ class HateSubredditFinder:
                         hate_sub = url_parts[4].lower()
                         if hate_sub not in self.subreddits_to_scan:
                             time = datetime.datetime.utcfromtimestamp(sub.created_utc)
-                            temp_df = pd.DataFrame([[to_scan, hate_sub, sub.ups, sub.permalink, time]], columns=columns)
+                            temp_df = pd.DataFrame([[sub.id, time, to_scan, hate_sub, sub.score, sub.title, sub.permalink]], \
+                                                   columns=columns)
                             self.hate_sub_reports = self.hate_sub_reports.append(temp_df, ignore_index=True)                        
                 else:
                     logging.info("This link has no associated subreddit: {}".format(sub.url))
