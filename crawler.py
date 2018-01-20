@@ -65,7 +65,7 @@ class Crawler:
             subreddit = self.reddit.subreddit(hate_sub)
 
             try:            
-                submissions = list(subreddit.new(limit=5))
+                submissions = list(subreddit.new(limit=10))
                 for sub in submissions:
                     sub.comments.replace_more(limit=0)
                     for comment in sub.comments.list():
@@ -104,10 +104,5 @@ class Crawler:
         
 if __name__ == '__main__':
     c = Crawler()
-    
-    def job():
-        c.run()
-    
-    schedule.every().hour.do(job)
-    
+    c.run()    
     
