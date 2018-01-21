@@ -30,9 +30,10 @@ import crawler
 
 # schedule.clear()
 
+c = crawler.Crawler()
+
 # define all the tasks you want to do
 def tasks_to_run():
-    c = crawler.Crawler()
     c.run()
     
 schedule.every(1).hour.do(tasks_to_run)
