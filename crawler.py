@@ -8,8 +8,8 @@ import praw
 import itertools
 import os
 import csv
-import schedule
 import datetime
+import time
 import pandas as pd
 import numpy as np
 
@@ -97,11 +97,30 @@ class Crawler:
         
         print(self.potential_hate_comments)
         DB.load_df(self.potential_hate_comments, 'comments', 'append')
+        
+        print(self.scanned_hate_subs)
+        DB.load_df(self.scanned_hate_subs, 'scanned_hate_sub_log', 'append')
 
     def run(self):
         self.collect()
+        self.log_current_run()
         self.load_to_db()
+
+    def log_current_run(self):
+        time_ran = strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
         
+        scanned_hate_subs = self.HRS.find_unique_hate_subreddits(5) # need to figure out how to match with
+        columns = ['time_ran_UTC', 'subreddit']
+        self.scanned_hate_subs = pd.DataFrame(data=np.zeros((0,len(columns))), columns=columns)
+        
+        for _ in scanned_hate_subs:
+            temp_df = pd.DataFrame([[
+                    time_ran,
+                    _]],
+                    columns=columns)
+            self.scanned_hate_subs = self.scanned_hate_subs.append(temp_df, ignore_index=True)
+                
+
 if __name__ == '__main__':
     c = Crawler()
     c.run()    
