@@ -107,7 +107,7 @@ class Crawler:
         self.load_to_db()
 
     def log_current_run(self):
-        time_ran = strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+        time_run = datetime.datetime.utcnow()
         
         scanned_hate_subs = self.HRS.find_unique_hate_subreddits(5) # need to figure out how to match with
         columns = ['time_ran_UTC', 'subreddit']
@@ -115,7 +115,7 @@ class Crawler:
         
         for _ in scanned_hate_subs:
             temp_df = pd.DataFrame([[
-                    time_ran,
+                    time_run,
                     _]],
                     columns=columns)
             self.scanned_hate_subs = self.scanned_hate_subs.append(temp_df, ignore_index=True)

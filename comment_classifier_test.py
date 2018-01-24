@@ -9,7 +9,10 @@ import comment_classifier
 class TestCommentClassifier(unittest.TestCase):
     def setUp(self):
         self.CC = comment_classifier.CommentClassifier(["Test_Slur_1", "Test_Slur_2"], ["A"])
-        
+
+    def test_subword_not_found(self):
+        comments = ["test_slur_1_extension"]
+        self.assertEqual(0, self.CC.analyze(comments[0]))        
     
     def test_false_positives_are_zero(self):
         comments = [
