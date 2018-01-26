@@ -6,6 +6,7 @@ Created on Mon Jan 15 17:23:55 2018
 """
 import pandas as pd
 import sqlalchemy as sqa
+from sqlalchemy import text
 
 class SQL_Loader():
     def __init__(self):
@@ -27,4 +28,16 @@ class SQL_Loader():
     
     def load_df(self, data, table_name, exists):
         data.to_sql( table_name, self.engine, if_exists = exists, index=False)
-  
+        
+    def pull_sub_log(self): # return scanned sub log
+        db = SQL_Loader()
+        
+        sql = text('select * from scanned_hate_sub_log') # eventually make this smarter, i.e. pull entry only if most recent
+        result = db.engine.execute(sql)
+        
+        names = []
+        
+        for _ in result:
+            names.append(_)
+            
+        return names
