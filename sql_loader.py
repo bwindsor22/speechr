@@ -29,14 +29,13 @@ class SQL_Loader():
     def load_df(self, data, table_name, exists):
         data.to_sql( table_name, self.engine, if_exists = exists, index=False)
         
-    def pull_sub_log(self): # return scanned sub log
+    def pull_sub_log(self):
         db = SQL_Loader()
         
-        sql = text('select subreddit,max("time_ran_utc") from scanned_log group by subreddit') # eventually make this smarter, i.e. pull entry only if most recent
+        sql = text('select subreddit,max("time_ran_utc") from scanned_log group by subreddit')
         result = db.engine.execute(sql)
         
-        subreddit = []
-        dates = []
+        subreddit, dates = [], []
         
         for _ in result:
             dates.append(_[1])
