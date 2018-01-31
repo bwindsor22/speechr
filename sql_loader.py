@@ -32,7 +32,7 @@ class SQL_Loader():
     def pull_sub_log(self): # return scanned sub log
         db = SQL_Loader()
         
-        sql = text('select * from scanned_hate_sub_log') # eventually make this smarter, i.e. pull entry only if most recent
+        sql = text('select subreddit,max("time_ran_utc") from scanned_log group by subreddit') 
         result = db.engine.execute(sql)
         
         names = []

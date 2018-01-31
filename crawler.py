@@ -34,6 +34,7 @@ class Crawler:
         subreddits_to_scan = list(itertools.chain.from_iterable(subreddits_to_scan))
 
         self.HRS = hate_subreddit_finder.HateSubredditFinder(self.reddit, subreddits_to_scan)
+        self.number = 5
         
         
     def load_csv_resource(self, file_name):
@@ -50,7 +51,7 @@ class Crawler:
         print('collecting...')
         i = 0
         
-        hate_subs = self.HRS.find_unique_hate_subreddits(5)
+        hate_subs = self.HRS.find_unique_hate_subreddits(self.number)
         print('hate subs: ' + str(hate_subs))
 
 
@@ -99,7 +100,7 @@ class Crawler:
         DB.load_df(self.potential_hate_comments, 'comments', 'append')
         
         print(self.scanned_hate_subs)
-        DB.load_df(self.scanned_hate_subs, 'scanned_hate_sub_log', 'append')
+        DB.load_df(self.scanned_hate_subs, 'scanned_log', 'append')
 
     def run(self):
         self.collect()
@@ -109,8 +110,8 @@ class Crawler:
     def log_current_run(self):
         time_run = datetime.datetime.utcnow()
         
-        scanned_hate_subs = self.HRS.find_unique_hate_subreddits(5) # need to figure out how to match with
-        columns = ['time_ran_UTC', 'subreddit']
+        scanned_hate_subs = self.HRS.find_unique_hate_subreddits(self.number) # need to figure out how to match with
+        columns = ['time_ran_utc', 'subreddit']
         self.scanned_hate_subs = pd.DataFrame(data=np.zeros((0,len(columns))), columns=columns)
         
         for _ in scanned_hate_subs:
@@ -119,7 +120,7 @@ class Crawler:
                     _]],
                     columns=columns)
             self.scanned_hate_subs = self.scanned_hate_subs.append(temp_df, ignore_index=True)
-                
+
 
 if __name__ == '__main__':
     c = Crawler()
