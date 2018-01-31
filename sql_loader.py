@@ -32,12 +32,16 @@ class SQL_Loader():
     def pull_sub_log(self): # return scanned sub log
         db = SQL_Loader()
         
-        sql = text('select subreddit,max("time_ran_utc") from scanned_log group by subreddit') 
+        sql = text('select subreddit,max("time_ran_utc") from scanned_log group by subreddit') # eventually make this smarter, i.e. pull entry only if most recent
         result = db.engine.execute(sql)
         
-        names = []
+        subreddit = []
+        dates = []
         
         for _ in result:
-            names.append(_)
+            dates.append(_[1])
+            subreddit.append(_[0])
             
-        return names
+        dict_log = dict(zip(subreddit,dates))
+        
+        return dict_log
