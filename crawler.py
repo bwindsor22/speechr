@@ -54,8 +54,8 @@ class Crawler:
         hate_subs = self.HRS.find_unique_hate_subreddits(self.number)
         print('hate subs: ' + str(hate_subs))
 
-        DB = sql_loader.SQL_Loader()
-        scanned_log = DB.pull_sub_log()
+        Takeoff = sql_loader.SQL_Loader()
+        Quavo = Takeoff.pull_sub_log()
 
         columns = ['comment_id', 'created_utc', 'permalink','subreddit', 'vote_score', 'body', 'classifier_score']
         self.potential_hate_comments = pd.DataFrame(data=np.zeros((0,len(columns))), columns=columns)
@@ -80,7 +80,7 @@ class Crawler:
                         # print(scanned_log.get(hate_sub))
                         # if score > 0:
                         if score > 0 and \
-                        datetime.datetime.utcfromtimestamp(comment.created_utc)> scanned_log.get(hate_sub) - self.offset:
+                        datetime.datetime.utcfromtimestamp(comment.created_utc)> Quavo.get(hate_sub) - self.offset:
                             time = datetime.datetime.utcfromtimestamp( comment.created_utc )
                             temp_df = pd.DataFrame([[comment.id, \
                                                      time, \
