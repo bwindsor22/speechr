@@ -5,6 +5,8 @@ Created on Sun Jan  7 21:35:55 2018
 
 """
 import praw
+from prawcore.exceptions import NotFound
+
 import itertools
 import os
 import csv
@@ -93,8 +95,10 @@ class Crawler:
                             self.potential_hate_comments = self.potential_hate_comments.append(temp_df, ignore_index=True)
                             print(comment.body)
                             print('score: ' + str(score))
-            except: 
-                print("error processing " + hate_sub)
+            except NotFound as ex:
+                print('Subreddit {} not found'.format(hate_sub))
+            except Exception as e:
+                print('Error processing sub: {}, {}'.format(hate_sub, e))
 
     def load_to_db(self):
         DB = sql_loader.SQL_Loader()
