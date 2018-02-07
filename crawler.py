@@ -70,36 +70,41 @@ class Crawler:
             subreddit = self.reddit.subreddit(hate_sub)
 
             try:            
-                submissions = list(subreddit.new(limit=10))
+                submissions = list(subreddit.new(limit=50))
                 for sub in submissions:
-                    sub.comments.replace_more(limit=0)
-                    for comment in sub.comments.list():
-                        i += 1
-                        if i % 100 == 0:
-                            print('processing comment # ' + str(i))
-                        score = self.CC.analyze(comment.body)
-                        
-                        # print(scanned_log.get(hate_sub))
-                        # if score > 0:
-                        if score > 0 and \
-                        datetime.datetime.utcfromtimestamp(comment.created_utc)> Quavo.get(hate_sub) - self.offset:
-                            time = datetime.datetime.utcfromtimestamp( comment.created_utc )
-                            temp_df = pd.DataFrame([[comment.id, \
-                                                     time, \
-                                                     comment.permalink, \
-                                                     hate_sub, \
-                                                     comment.score, \
-                                                     comment.body, \
-                                                     score]], 
-                                                   columns=columns)
-                            self.potential_hate_comments = self.potential_hate_comments.append(temp_df, ignore_index=True)
-                            print(comment.body)
-                            print('score: ' + str(score))
+                    if datetime.datetime.utcfromtimestamp(sub.created_utc) > self.get_mindate(hate_sub) - self.offset:
+                        sub.comments.replace_more(limit=0)
+                        comment_list = sub.comments.list()
+                        self.process_comments(comment_list, i, Quavo, hate_sub, columns) 
+  
             except NotFound as ex:
                 print('Subreddit {} not found'.format(hate_sub))
             except Exception as e:
                 print('Error processing sub: {}, {}'.format(hate_sub, e))
 
+    def process_comments(self,comment_list, i, Quavo, hate_sub, columns):                    
+        for comment in comment_list:
+            i += 1
+            if i % 100 == 0:
+                print('processing comment # ' + str(i))
+            score = self.CC.analyze(comment.body)
+            
+            if score > 0 and \
+            datetime.datetime.utcfromtimestamp(comment.created_utc)> self.get_mindate(hate_sub):
+                time = datetime.datetime.utcfromtimestamp( comment.created_utc )
+                temp_df = pd.DataFrame([[comment.id, \
+                                         time, \
+                                         comment.permalink, \
+                                         hate_sub, \
+                                         comment.score, \
+                                         comment.body, \
+                                         score]], 
+                                       columns=columns)
+                self.potential_hate_comments = self.potential_hate_comments.append(temp_df, ignore_index=True)
+                print(comment.body)
+                print('score: ' + str(score))
+                
+                
     def load_to_db(self):
         DB = sql_loader.SQL_Loader()
         
@@ -130,6 +135,14 @@ class Crawler:
                     _]],
                     columns=columns)
             self.scanned_hate_subs = self.scanned_hate_subs.append(temp_df, ignore_index=True)
+            
+    def get_mindate(self, subreddit):
+        sql = sql_loader.SQL_Loader()
+        log = sql.pull_sub_log()
+        if log.get(subreddit) == None:
+            return datetime.MINYEAR
+        else:
+            return log.get(subreddit)
 
 
 if __name__ == '__main__':
