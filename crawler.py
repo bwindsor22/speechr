@@ -35,8 +35,11 @@ class Crawler:
         subreddits_to_scan = list(itertools.chain.from_iterable(subreddits_to_scan))
 
         self.HRS = hate_subreddit_finder.HateSubredditFinder(self.reddit, subreddits_to_scan)
-        self.number = 5
+        self.number_of_hate_subs = 20
         self.offset = datetime.timedelta(2)
+        
+        sql = sql_loader.SQL_Loader()
+        self.subreddit_last_scanned_dates = sql.pull_sub_log()
         
         
     def load_csv_resource(self, file_name):
@@ -53,11 +56,8 @@ class Crawler:
         print('collecting...')
         i = 0
         
-        hate_subs = self.HRS.find_unique_hate_subreddits(self.number)
+        hate_subs = self.HRS.find_unique_hate_subreddits(self.number_of_hate_subs)
         print('hate subs: ' + str(hate_subs))
-
-        Takeoff = sql_loader.SQL_Loader()
-        Quavo = Takeoff.pull_sub_log()
 
         columns = ['comment_id', 'created_utc', 'permalink','subreddit', 'vote_score', 'body', 'classifier_score']
         self.potential_hate_comments = pd.DataFrame(data=np.zeros((0,len(columns))), columns=columns)
@@ -72,25 +72,27 @@ class Crawler:
             try:            
                 submissions = list(subreddit.new(limit=50))
                 for sub in submissions:
-                    if datetime.datetime.utcfromtimestamp(sub.created_utc) > self.get_mindate(hate_sub) - self.offset:
+                    if datetime.datetime.utcfromtimestamp(sub.created_utc) > self.get_last_scan(hate_sub) - self.offset:
                         sub.comments.replace_more(limit=0)
                         comment_list = sub.comments.list()
-                        self.process_comments(comment_list, i, Quavo, hate_sub, columns) 
+                        self.process_comments(comment_list, i, hate_sub, columns) 
   
             except NotFound as ex:
                 print('Subreddit {} not found'.format(hate_sub))
             except Exception as e:
                 print('Error processing sub: {}, {}'.format(hate_sub, e))
 
-    def process_comments(self,comment_list, i, Quavo, hate_sub, columns):                    
+    def process_comments(self,comment_list, i, hate_sub, columns):                    
         for comment in comment_list:
+            if datetime.datetime.utcfromtimestamp(comment.created_utc)> self.get_last_scan(hate_sub):
+                continue
+            
             i += 1
             if i % 100 == 0:
                 print('processing comment # ' + str(i))
             score = self.CC.analyze(comment.body)
             
-            if score > 0 and \
-            datetime.datetime.utcfromtimestamp(comment.created_utc)> self.get_mindate(hate_sub):
+            if score > 0:            
                 time = datetime.datetime.utcfromtimestamp( comment.created_utc )
                 temp_df = pd.DataFrame([[comment.id, \
                                          time, \
@@ -125,7 +127,7 @@ class Crawler:
     def log_current_run(self):
         time_run = datetime.datetime.utcnow()
         
-        scanned_hate_subs = self.HRS.find_unique_hate_subreddits(self.number) # need to figure out how to match with
+        scanned_hate_subs = self.HRS.find_unique_hate_subreddits(self.number_of_hate_subs)
         columns = ['time_ran_utc', 'subreddit']
         self.scanned_hate_subs = pd.DataFrame(data=np.zeros((0,len(columns))), columns=columns)
         
@@ -136,13 +138,11 @@ class Crawler:
                     columns=columns)
             self.scanned_hate_subs = self.scanned_hate_subs.append(temp_df, ignore_index=True)
             
-    def get_mindate(self, subreddit):
-        sql = sql_loader.SQL_Loader()
-        log = sql.pull_sub_log()
-        if log.get(subreddit) == None:
-            return datetime.MINYEAR
+    def get_last_scan(self, subreddit):
+        if self.subreddit_last_scanned_dates.get(subreddit) == None:
+            return datetime.datetime.min + self.offset
         else:
-            return log.get(subreddit)
+            return self.subreddit_last_scanned_dates.get(subreddit)
 
 
 if __name__ == '__main__':
