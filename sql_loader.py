@@ -33,8 +33,15 @@ class SQL_Loader():
         db = SQL_Loader()
         
         sql = text('select subreddit,max("time_ran_utc") from scanned_log group by subreddit')
-        result = db.engine.execute(sql)
+        try:
+            result = db.engine.execute(sql)
+        except Exception as e:
+            print("Error executing statement {}".format(e))
+            return None
         
+        return self.sub_log_to_dict(result)
+        
+    def sub_log_to_dict(self, result):
         subreddit, dates = [], []
         
         for _ in result:

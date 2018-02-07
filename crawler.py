@@ -139,6 +139,9 @@ class Crawler:
             self.scanned_hate_subs = self.scanned_hate_subs.append(temp_df, ignore_index=True)
             
     def get_last_scan(self, subreddit):
+        if self.self.subreddit_last_scanned_dates == None:
+            return datetime.datetime.min + self.offset
+        
         if self.subreddit_last_scanned_dates.get(subreddit) == None:
             return datetime.datetime.min + self.offset
         else:
