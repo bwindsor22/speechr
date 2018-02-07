@@ -25,7 +25,8 @@ Calls next_run on the default scheduler instance.
 """
 
 import schedule
-import time # keep for when we want to schedule program to run at a certain time
+import datetime
+import time
 import crawler
 
 # schedule.clear()
@@ -38,10 +39,12 @@ def tasks_to_run():
     
 schedule.every(1).hour.do(tasks_to_run)
 
-"""schedule.run_pending() checks which jobs are to be run and then runs the task
-that is scheduled each time it is called.  The infinite loop basically keeps
-allows the class to check keep checking when it needs to be run then runs it"""
+
+schedule.run_all()
+
 while True:
-    print("running tasks...")
+    # datetime.datetime.strftime(schedule.next_run(), '%Y-%m-%d %H:%M:%S')
+    print("running tasks...\n",
+          "next scheduled run in local time", schedule.next_run()) # eventually convert to UTC
     schedule.run_pending()
     time.sleep(20)
