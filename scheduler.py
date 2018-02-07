@@ -42,5 +42,6 @@ schedule.every(1).hour.do(tasks_to_run)
 that is scheduled each time it is called.  The infinite loop basically keeps
 allows the class to check keep checking when it needs to be run then runs it"""
 while True:
+    print("running tasks...")
     schedule.run_pending()
     time.sleep(20)
