@@ -118,10 +118,8 @@ class Crawler:
         hate_sub_reports = self.HRS.get_hate_sub_reports(-1)
         self.DB.load_df(hate_sub_reports, 'hate_sub_reports', 'append')
         
-        print(self.potential_hate_comments)
         self.DB.load_df(self.potential_hate_comments, 'comments', 'append')
         
-        print(self.scanned_hate_subs)
         self.DB.load_df(self.scanned_hate_subs, 'scanned_log', 'append')
 
     def run(self):
