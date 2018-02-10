@@ -5,3 +5,4 @@ praw.ini
 keypairname.pem
 __pycache__/
 log_files/
+nohup.out
