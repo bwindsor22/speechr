@@ -5,16 +5,20 @@ Created on Mon Jan 15 17:23:55 2018
 
 """
 import pandas as pd
+import logging
 import sqlalchemy as sqa
 from sqlalchemy import text
 
 class SQL_Loader():
-    def __init__(self):
-        user = 'sys_speechr'
-        passwd = 'pass'
-        host = 'localhost'
-        port =5432
-        db_name = 'example'
+    def __init__(self, app_config):
+        self.logger = logging.getLogger('default')
+
+        DB = app_config['DB']
+        user = DB['user']
+        passwd = DB['passwd']
+        host = DB['host']
+        port = DB['port']
+        db_name = DB['db_name']
         
         conn_str = "postgresql://{}:{}@{}:{}/{}".format(user, passwd, host, port, db_name)
         
@@ -29,14 +33,13 @@ class SQL_Loader():
     def load_df(self, data, table_name, exists):
         data.to_sql( table_name, self.engine, if_exists = exists, index=False)
         
-    def pull_sub_log(self):
-        db = SQL_Loader()
-        
+    def pull_sub_log(self):        
         sql = text('select subreddit,max("time_ran_utc") from scanned_log group by subreddit')
         try:
-            result = db.engine.execute(sql)
+            result = self.engine.execute(sql)
         except Exception as e:
-            print("Error executing statement {}".format(e))
+            self.logger.error("Error executing statement {}".format(e))
+            self.logger.exception(e)
             return None
         
         return self.sub_log_to_dict(result)

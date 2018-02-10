@@ -1,0 +1,25 @@
+{
+	"version":1,
+	"handlers":{
+	    "fileHandler":{
+	        "class":"logging.FileHandler",
+	        "formatter":"myFormatter",
+	        "filename":"./log_files/logfile.log"
+        }
+    },        
+	"loggers":{
+	    "default":{
+	        "handlers":["fileHandler"],
+	        "level":"INFO"
+        },
+	    "scheduler":{
+	        "handlers":["fileHandler"],
+	        "level":"INFO"
+        }
+    },
+	"formatters":{
+	    "myFormatter":{
+	        "format":"%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        }
+	}
+}

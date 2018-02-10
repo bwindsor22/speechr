@@ -21,30 +21,51 @@ Calls cancel_job on the default scheduler instance.
 
 schedule.next_run()[source]
 Calls next_run on the default scheduler instance.
-
 """
-
 import schedule
-import datetime
 import time
 import crawler
+import logging
+import logging.config
+import os
+import json
 
-# schedule.clear()
+def setup_logging():    
+    app_path = os.path.dirname(os.path.abspath(__file__))
+    logger_config = os.path.join(os.path.sep, app_path, 'config', 'logging_config') + '.json'
+    if os.path.exists(logger_config):
+        with open(logger_config, 'rt') as f:
+            config = json.load(f)
 
-c = crawler.Crawler()
+    logging.config.dictConfig(config)
+    logger = logging.getLogger("scheduler")
+    return logger
 
-# define all the tasks you want to do
-def tasks_to_run():
-    c.run()
+def run_jobs(logger):
+    try:
+        start_crawler(logger)
+    except Exception as ex:
+        logger.error('Job failed')
+        logger.exception(ex)
+
+def start_crawler(logger):
+    logger.info('Starting job')
+    c = crawler.Crawler()
     
-schedule.every(1).hour.do(tasks_to_run)
-
-
-schedule.run_all()
-
-while True:
-    # datetime.datetime.strftime(schedule.next_run(), '%Y-%m-%d %H:%M:%S')
-    print("running tasks...\n",
-          "next scheduled run in local time", schedule.next_run()) # eventually convert to UTC
-    schedule.run_pending()
-    time.sleep(20)
+    # define all the tasks you want to do
+    def run_once():
+        c.run()
+        
+    schedule.every(1).hour.do(run_once)
+    schedule.run_all()
+    
+    
+    while True:
+        logger.info("Waiting. Next scheduled run start in local time: {}".format(schedule.next_run()))
+        schedule.run_pending()
+        time.sleep(10)
+        
+if __name__ == '__main__':
+    logger = setup_logging()
+    run_jobs(logger)
+    

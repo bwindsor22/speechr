@@ -3,3 +3,5 @@ praw.ini
 *.pyc
 *~
 keypairname.pem
+__pycache__/
+log_files/

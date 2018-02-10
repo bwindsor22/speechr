@@ -11,7 +11,8 @@ import numpy as np
 import datetime
 
 class HateSubredditFinder:
-    def __init__(self, reddit, subreddits_to_scan):   
+    def __init__(self, reddit, subreddits_to_scan):
+        self.logger = logging.getLogger('default')
         self.reddit = reddit
         self.subreddits_to_scan = subreddits_to_scan
         self.collected = False
@@ -51,5 +52,5 @@ class HateSubredditFinder:
                                                    columns=columns)
                             self.hate_sub_reports = self.hate_sub_reports.append(temp_df, ignore_index=True)                        
                 else:
-                    logging.info("This link has no associated subreddit: {}".format(sub.url))
+                    self.logger.info("This link has no associated subreddit: {}".format(sub.url))
         
