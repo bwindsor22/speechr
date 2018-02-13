@@ -46,6 +46,8 @@ def preprocess(text_string):
     #parsed_text = parsed_text.code("utf-8", errors='ignore')
     return parsed_text
 
+stemmer = SnowballStemmer("english")
+stopwords = nltk.corpus.stopwords.words("english")
 
 vectorizer = TfidfVectorizer(
     tokenizer=tokenize,
@@ -61,8 +63,6 @@ vectorizer = TfidfVectorizer(
     max_df=0.501
 )
 
-stemmer = SnowballStemmer("english")
-stopwords=stopwords = nltk.corpus.stopwords.words("english")
 # load
 df = pd.read_csv("./ref/labeled_data.csv")
 df.columns = df.columns.str.strip()
@@ -79,7 +79,7 @@ X = pd.DataFrame(tfidf)
 y = df['class'].astype(int)
 
 
-# Get rid of the zero values
+# Get rid of zero values
 # http://scikit-learn.org/stable/modules/feature_selection.html
 select = SelectFromModel(LogisticRegression(class_weight='balanced',penalty="l1",C=0.01))
 X_ = select.fit_transform(X,y)
@@ -91,4 +91,6 @@ report = classification_report( y, y_preds )
 print(report)
 
 joblib.dump(vectorizer, 'SimpleTfidfVectorizer.pkl') 
+joblib.dump(select, 'Selector.pkl')
+joblib.dump(model, 'SVMModel.pkl')
 
