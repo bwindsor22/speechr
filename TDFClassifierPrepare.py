@@ -13,7 +13,11 @@ import re
 import nltk
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.stem.snowball import SnowballStemmer
-
+from sklearn.externals import joblib
+from sklearn.linear_model import LogisticRegression
+from sklearn.feature_selection import SelectFromModel
+from sklearn.metrics import classification_report
+from sklearn.svm import LinearSVC
 
 def tokenize(tweet):
     """Removes punctuation & excess whitespace, sets to lowercase,
@@ -70,15 +74,11 @@ vocab = {v:i for i, v in enumerate(vectorizer.get_feature_names())}
 idf_vals = vectorizer.idf_
 idf_dict = {i:idf_vals[i] for i in vocab.values()} #keys are indices; values are IDF scores
 
-#
-variables = ['']*len(vocab)
+
 X = pd.DataFrame(tfidf)
 y = df['class'].astype(int)
 
-from sklearn.linear_model import LogisticRegression
-from sklearn.feature_selection import SelectFromModel
-from sklearn.metrics import classification_report
-from sklearn.svm import LinearSVC
+
 # Get rid of the zero values
 # http://scikit-learn.org/stable/modules/feature_selection.html
 select = SelectFromModel(LogisticRegression(class_weight='balanced',penalty="l1",C=0.01))
@@ -89,4 +89,6 @@ model = LinearSVC(class_weight='balanced',C=0.01, penalty='l2', \
 y_preds = model.predict(X_)
 report = classification_report( y, y_preds )
 print(report)
+
+joblib.dump(vectorizer, 'SimpleTfidfVectorizer.pkl') 
 
