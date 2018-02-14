@@ -32,7 +32,7 @@ class SQL_Loader():
     
     def load_df(self, data, table_name, exists):
         if data.empty or data is None:
-            self.logger('Skipping db load for empty df {}', table_name)
+            self.logger.info('Skipping db load for empty df {}', table_name)
             return
         data.to_sql( table_name, self.engine, if_exists = exists, index=False)
         
