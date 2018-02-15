@@ -23,7 +23,7 @@ class SQL_Loader():
         conn_str = "postgresql://{}:{}@{}:{}/{}".format(user, passwd, host, port, db_name)
         
         #e.g. 'postgresql://sys_speechr:pass@localhost:5432/example'
-        self.engine = sqa.create_engine(conn_str)
+        self.engine = sqa.create_engine(conn_str, pool_pre_ping=True)
 
     def insert_dict(self, data, table_name, cols):
         data = pd.DataFrame(data, index=[0]).transpose()
@@ -32,7 +32,7 @@ class SQL_Loader():
     
     def load_df(self, data, table_name, exists):
         if data.empty or data is None:
-            self.logger('Skipping db load for empty df {}', table_name)
+            self.logger.info('Skipping db load for empty df {}', table_name)
             return
         data.to_sql( table_name, self.engine, if_exists = exists, index=False)
         
