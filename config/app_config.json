@@ -8,8 +8,8 @@
 	    "db_name":"example"
     },
     "crawler":{
-    	"num_hate_subs":1,
+    	"num_hate_subs":20,
     	"time_delta_in_days":2,
-    	"max_posts_per_sub":2
+    	"max_posts_per_sub":50
     }
 }
