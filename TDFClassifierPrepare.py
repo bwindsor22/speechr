@@ -8,6 +8,7 @@ https://github.com/t-davidson/hate-speech-and-offensive-language
 
 import pandas as pd
 import numpy as np
+import pickle
 import re
 
 import nltk
@@ -22,6 +23,7 @@ from sklearn.svm import LinearSVC
 def tokenize(tweet):
     """Removes punctuation & excess whitespace, sets to lowercase,
     and stems tweets. Returns a list of stemmed tokens."""
+    stemmer = SnowballStemmer("english")
     tweet = " ".join(re.split("[^a-zA-Z]+", tweet.lower())).strip()
     tokens = [stemmer.stem(t) for t in tweet.split()]
     return tokens
@@ -46,51 +48,55 @@ def preprocess(text_string):
     #parsed_text = parsed_text.code("utf-8", errors='ignore')
     return parsed_text
 
-stemmer = SnowballStemmer("english")
-stopwords = nltk.corpus.stopwords.words("english")
+def make_model():
+    stopwords = nltk.corpus.stopwords.words("english")
+    
+    vectorizer = TfidfVectorizer(
+        tokenizer=tokenize,
+        preprocessor=preprocess,
+        ngram_range=(1, 3),
+        stop_words=stopwords, #We do better when we keep stopwords
+        use_idf=True,
+        smooth_idf=False,
+        norm=None, #Applies l2 norm smoothing
+        decode_error='replace',
+        max_features=10000,
+        min_df=5,
+        max_df=0.501
+    )
+    
+    # load
+    df = pd.read_csv("./ref/labeled_data.csv")
+    df.columns = df.columns.str.strip()
+    tweets = df.tweet
+    
+    #get feature array
+    tfidf = vectorizer.fit_transform(tweets).toarray()
+    vocab = {v:i for i, v in enumerate(vectorizer.get_feature_names())}
+    
+    
+    X = pd.DataFrame(tfidf)
+    y = df['class'].astype(int)
+    
+    
+    # Get rid of zero values
+    # http://scikit-learn.org/stable/modules/feature_selection.html
+    select = SelectFromModel(LogisticRegression(class_weight='balanced',penalty="l1",C=0.01))
+    X_ = select.fit_transform(X,y)
+    
+    model = LinearSVC(class_weight='balanced',C=0.01, penalty='l2', \
+                      loss='squared_hinge',multi_class='ovr').fit(X_, y)
+    y_preds = model.predict(X_)
+    report = classification_report( y, y_preds )
+    print(report)
+    
+    with open('SimpleTfidfVectorizer.pkl', 'wb') as fin:
+        pickle.dump(vectorizer, fin)
+    with open('Selector.pkl', 'wb') as fin:
+        pickle.dump(select, fin)
+    with open('SVMModel.pkl', 'wb') as fin:
+        pickle.dump(model, fin)    
 
-vectorizer = TfidfVectorizer(
-    tokenizer=tokenize,
-    preprocessor=preprocess,
-    ngram_range=(1, 3),
-    stop_words=stopwords, #We do better when we keep stopwords
-    use_idf=True,
-    smooth_idf=False,
-    norm=None, #Applies l2 norm smoothing
-    decode_error='replace',
-    max_features=10000,
-    min_df=5,
-    max_df=0.501
-)
 
-# load
-df = pd.read_csv("./ref/labeled_data.csv")
-df.columns = df.columns.str.strip()
-tweets = df.tweet
-
-#get feature array
-tfidf = vectorizer.fit_transform(tweets).toarray()
-vocab = {v:i for i, v in enumerate(vectorizer.get_feature_names())}
-idf_vals = vectorizer.idf_
-idf_dict = {i:idf_vals[i] for i in vocab.values()} #keys are indices; values are IDF scores
-
-
-X = pd.DataFrame(tfidf)
-y = df['class'].astype(int)
-
-
-# Get rid of zero values
-# http://scikit-learn.org/stable/modules/feature_selection.html
-select = SelectFromModel(LogisticRegression(class_weight='balanced',penalty="l1",C=0.01))
-X_ = select.fit_transform(X,y)
-
-model = LinearSVC(class_weight='balanced',C=0.01, penalty='l2', \
-                  loss='squared_hinge',multi_class='ovr').fit(X_, y)
-y_preds = model.predict(X_)
-report = classification_report( y, y_preds )
-print(report)
-
-joblib.dump(vectorizer, 'SimpleTfidfVectorizer.pkl') 
-joblib.dump(select, 'Selector.pkl')
-joblib.dump(model, 'SVMModel.pkl')
-
+if __name__ == "__main__":
+   make_model() 
