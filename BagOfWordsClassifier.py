@@ -8,7 +8,7 @@ import joblib
 
 class BagOfWordsClassifier:
     def __init__(self):
-        self.vectorizer = joblib.load('SimpleTfidfVectorizer.pkl')
+        #self.vectorizer = joblib.load('SimpleTfidfVectorizer.pkl')
         self.selector = joblib.load('Selector.pkl')
         self.model = joblib.load('SVMModel.pkl')
     
@@ -19,7 +19,6 @@ class BagOfWordsClassifier:
         X_ = self.select.transform(X)
         
         y_pred = self.model.predict(X_)
-        
         return y_pred
 
 

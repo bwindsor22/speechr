@@ -24,7 +24,10 @@ class SQL_Loader():
         
         #e.g. 'postgresql://sys_speechr:pass@localhost:5432/example'
         self.engine = sqa.create_engine(conn_str, pool_pre_ping=True)
-
+        
+    def get_engine(self):
+        return self.engine
+    
     def insert_dict(self, data, table_name, cols):
         data = pd.DataFrame(data, index=[0]).transpose()
         data.columns = cols
@@ -43,7 +46,7 @@ class SQL_Loader():
         except Exception as e:
             self.logger.error("Error executing statement {}".format(e))
             self.logger.exception(e)
-            return None
+            return Nonesimple_flask_api
         
         return self.sub_log_to_dict(result)
         
