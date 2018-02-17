@@ -17,13 +17,21 @@ class BagOfWordsClassifier:
         self.select = pickle.load(open("Selector.pkl", "rb"))
         self.model = pickle.load(open("SVMModel.pkl", "rb"))
     
-    def classify(self, text_array):
+    def classify(self, text):
+        text_array = [text]
         tfidf = self.vectorizer.transform(text_array).toarray()
         X = pd.DataFrame(tfidf)
         
         X_ = self.select.transform(X)
         
-        y_pred = self.model.predict(X_)
-        return y_pred
+        y = self.model.predict(X_)
+        
+        return self.scores_to_class_score(y[0])
 
 
+    def scores_to_class_score(x):
+        return {
+            2: 0,
+            1: 1,
+            0: 3
+        }[x]

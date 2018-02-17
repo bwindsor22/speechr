@@ -66,8 +66,9 @@ class Crawler:
         hate_subs = self.HRS.find_unique_hate_subreddits(self.number_of_hate_subs)
         self.logger.info('hate subs: ' + str(hate_subs))
 
-        columns = ['comment_id', 'created_utc', 'permalink','subreddit', 'vote_score', 'body', 'classifier_score']
+        columns = ['comment_id', 'created_utc', 'permalink','subreddit', 'vote_score', 'body']
         self.potential_hate_comments = pd.DataFrame(data=np.zeros((0,len(columns))), columns=columns)
+        self.keyword_scores = pd.DataFrame(data=np.zeros((0,2)), columns=['comment_id', 'score'])
         
         for hate_sub in hate_subs:
             self.logger.info('--------------------------')
@@ -97,21 +98,24 @@ class Crawler:
             i += 1
             if i % 100 == 0:
                 self.logger.info('processing comment # ' + str(i))
-            score = self.CC.analyze(comment.body)
-            
-            if score > 0:            
+
+            keyword_score = self.CC.analyze(comment.body)
+                
+            if keyword_score > 0:            
                 time = datetime.datetime.utcfromtimestamp( comment.created_utc )
                 temp_df = pd.DataFrame([[comment.id, \
                                          time, \
                                          comment.permalink, \
                                          hate_sub, \
                                          comment.score, \
-                                         comment.body, \
-                                         score]], 
+                                         comment.body ]], 
                                        columns=columns)
+                temp_keyword = pd.DataFrame([[comment.id, keyword_score]])
+                
                 self.potential_hate_comments = self.potential_hate_comments.append(temp_df, ignore_index=True)
+                self.keyword_scores = self.keyword_scores.append(temp_keyword, ignore_index=True)
                 self.logger.info(comment.body)
-                self.logger.info('score: ' + str(score))
+                self.logger.info('keyword_score: ' + str(keyword_score))
                 
                 
     def load_to_db(self):
