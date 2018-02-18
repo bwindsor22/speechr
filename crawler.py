@@ -17,6 +17,7 @@ import logging
 import json
 
 import comment_classifier
+import BagOfWordsClassifier
 import hate_subreddit_finder
 import sql_loader
 
@@ -34,6 +35,8 @@ class Crawler:
         subreddits_to_scan = self.load_csv_resource_to_list('policing_subreddits', app_path)
         
         self.CC = comment_classifier.CommentClassifier(slurs, violent_words)
+        self.BOWC = BagOfWordsClassifier.BagOfWordsClassifier()
+        
         self.HRS = hate_subreddit_finder.HateSubredditFinder(self.reddit, subreddits_to_scan)
         self.number_of_hate_subs = self.app_config['crawler']['num_hate_subs']
         self.offset = datetime.timedelta(self.app_config['crawler']['time_delta_in_days'])
@@ -68,7 +71,10 @@ class Crawler:
 
         columns = ['comment_id', 'created_utc', 'permalink','subreddit', 'vote_score', 'body']
         self.potential_hate_comments = pd.DataFrame(data=np.zeros((0,len(columns))), columns=columns)
-        self.keyword_scores = pd.DataFrame(data=np.zeros((0,2)), columns=['comment_id', 'score'])
+        
+        scores_cols = ['comment_id', 'score']
+        self.keyword_scores = pd.DataFrame(data=np.zeros((0,len(scores_cols))), columns=scores_cols)
+        self.bag_of_words_scores = pd.DataFrame(data=np.zeros((0,len(scores_cols))), columns=scores_cols)
         
         for hate_sub in hate_subs:
             self.logger.info('--------------------------')
@@ -83,8 +89,9 @@ class Crawler:
                     if datetime.datetime.utcfromtimestamp(sub.created_utc) > self.get_last_scan(hate_sub) - self.offset:
                         sub.comments.replace_more(limit=0)
                         comment_list = sub.comments.list()
-                        self.process_comments(comment_list, i, hate_sub, columns) 
-  
+                        self.process_subreddit_comments(comment_list, i, hate_sub, columns) 
+                        self.load_subreddit_comments_scores()
+    
             except NotFound as ex:
                 self.logger.info('Subreddit {} not found'.format(hate_sub))
             except Exception as e:
@@ -100,8 +107,9 @@ class Crawler:
                 self.logger.info('processing comment # ' + str(i))
 
             keyword_score = self.CC.analyze(comment.body)
+            bow_score = self.BOWC.analyze(comment.body)
                 
-            if keyword_score > 0:            
+            if keyword_score > 0 or bow_score > 0:            
                 time = datetime.datetime.utcfromtimestamp( comment.created_utc )
                 temp_df = pd.DataFrame([[comment.id, \
                                          time, \
@@ -110,26 +118,31 @@ class Crawler:
                                          comment.score, \
                                          comment.body ]], 
                                        columns=columns)
+                
                 temp_keyword = pd.DataFrame([[comment.id, keyword_score]])
+                temp_bowc = pd.DataFrame([[comment.id, bow_score]])
                 
                 self.potential_hate_comments = self.potential_hate_comments.append(temp_df, ignore_index=True)
                 self.keyword_scores = self.keyword_scores.append(temp_keyword, ignore_index=True)
+                self.bag_of_words_scores = self.bag_of_words_scores.append(temp_bowc, ignore_index=True)
+                
                 self.logger.info(comment.body)
                 self.logger.info('keyword_score: ' + str(keyword_score))
-                
-                
-    def load_to_db(self):
-        hate_sub_reports = self.HRS.get_hate_sub_reports(-1)
-        self.DB.load_df(hate_sub_reports, 'hate_sub_reports', 'append')
-        
+    
+    def load_subreddit_comments_scores(self):
         self.DB.load_df(self.potential_hate_comments, 'comments', 'append')
+        self.potential_hate_comments = self.potential_hate_comments.iloc[0:0]
         
-        self.DB.load_df(self.scanned_hate_subs, 'scanned_log', 'append')
-
+        self.DB.load_df(self.keyword_scores, 'keyword_scores', 'append')
+        self.keyword_scores = self.keyword_scores.iloc[0:0]
+        
+        self.DB.load_df(self.bag_of_words_scores, 'bow_scores', 'append')
+        self.bag_of_words_scores = self.bag_of_words_scores.iloc[0:0]
+        
     def run(self):
         self.collect()
         self.log_current_run()
-        self.load_to_db()
+        self.load_summary_to_db()
 
     def log_current_run(self):
         self.logger.info('recording results of run...')
@@ -145,7 +158,12 @@ class Crawler:
                     _]],
                     columns=columns)
             self.scanned_hate_subs = self.scanned_hate_subs.append(temp_df, ignore_index=True)
-            
+
+    def load_summary_to_db(self):
+        hate_sub_reports = self.HRS.get_hate_sub_reports(-1)
+        self.DB.load_df(hate_sub_reports, 'hate_sub_reports', 'append')                                
+        self.DB.load_df(self.scanned_hate_subs, 'scanned_log', 'append')
+           
     def get_last_scan(self, subreddit):
         if self.subreddit_last_scanned_dates == None:
             return datetime.datetime.min + self.offset

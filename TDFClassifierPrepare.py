@@ -73,7 +73,7 @@ def make_model():
     #get feature array
     tfidf = vectorizer.fit_transform(tweets).toarray()
     vocab = {v:i for i, v in enumerate(vectorizer.get_feature_names())}
-    
+    print(vocab)
     
     X = pd.DataFrame(tfidf)
     y = df['class'].astype(int)
