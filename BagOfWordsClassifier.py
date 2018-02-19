@@ -26,12 +26,14 @@ class BagOfWordsClassifier:
         
         y = self.model.predict(X_)
         
-        return self.scores_to_class_score(y[0])
+        score = self.scores_to_class_score(y[0])
+
+        return score
 
 
-    def scores_to_class_score(x):
+    def scores_to_class_score(self, score):
         return {
             2: 0,
             1: 1,
             0: 5
-        }[x]
+        }[score]

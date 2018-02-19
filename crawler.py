@@ -86,10 +86,13 @@ class Crawler:
             try:            
                 submissions = list(subreddit.new(limit=50))
                 for sub in submissions:
-                    if datetime.datetime.utcfromtimestamp(sub.created_utc) > self.get_last_scan(hate_sub) - self.offset:
+                    last_scan_time = self.get_last_scan(hate_sub) 
+                    if datetime.datetime.utcfromtimestamp(sub.created_utc) > last_scan_time - self.offset:
+                        
                         sub.comments.replace_more(limit=0)
                         comment_list = sub.comments.list()
-                        self.process_subreddit_comments(comment_list, i, hate_sub, columns) 
+                        
+                        self.process_comment_list(comment_list, i, hate_sub, columns, last_scan_time) 
                         self.load_subreddit_comments_scores()
     
             except NotFound as ex:
@@ -97,9 +100,9 @@ class Crawler:
             except Exception as e:
                 self.logger.info('Error processing sub: {}, {}'.format(hate_sub, e))
 
-    def process_comments(self,comment_list, i, hate_sub, columns):                    
+    def process_comment_list(self,comment_list, i, hate_sub, columns, last_scan_time):                    
         for comment in comment_list:
-            if datetime.datetime.utcfromtimestamp(comment.created_utc)> self.get_last_scan(hate_sub):
+            if datetime.datetime.utcfromtimestamp(comment.created_utc) > last_scan_time:
                 continue
             
             i += 1
@@ -128,6 +131,7 @@ class Crawler:
                 
                 self.logger.info(comment.body)
                 self.logger.info('keyword_score: ' + str(keyword_score))
+                self.logger.info('bag of words score: ' + str(bow_score))
     
     def load_subreddit_comments_scores(self):
         self.DB.load_df(self.potential_hate_comments, 'comments', 'append')
