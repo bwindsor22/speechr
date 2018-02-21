@@ -83,18 +83,20 @@ class Crawler:
                     
             subreddit = self.reddit.subreddit(hate_sub)
 
-            try:            
+            try:    
+                last_scan_time = self.get_last_scan(hate_sub) 
+                self.logger.info('last scan time {} '.format(str(last_scan_time)))
                 submissions = list(subreddit.new(limit=50))
                 for sub in submissions:
-                    last_scan_time = self.get_last_scan(hate_sub) 
                     if datetime.datetime.utcfromtimestamp(sub.created_utc) > last_scan_time - self.offset:
-                        
                         sub.comments.replace_more(limit=0)
                         comment_list = sub.comments.list()
-                        
+                        self.logger.info('.. found {} comments'.format(len(comment_list)))
                         self.process_comment_list(comment_list, i, hate_sub, columns, last_scan_time) 
-                        self.load_subreddit_comments_scores()
-    
+                        
+                if self.potential_hate_comments.shape[0] > 0:
+                    self.load_and_clear_subreddit_comments_scores()
+                        
             except NotFound as ex:
                 self.logger.info('Subreddit {} not found'.format(hate_sub))
             except Exception as e:
@@ -102,7 +104,8 @@ class Crawler:
 
     def process_comment_list(self,comment_list, i, hate_sub, columns, last_scan_time):                    
         for comment in comment_list:
-            if datetime.datetime.utcfromtimestamp(comment.created_utc) > last_scan_time:
+            if datetime.datetime.utcfromtimestamp(comment.created_utc) < last_scan_time:
+                self.logger.debug('skipping')
                 continue
             
             i += 1
@@ -111,7 +114,9 @@ class Crawler:
 
             keyword_score = self.CC.analyze(comment.body)
             bow_score = self.BOWC.analyze(comment.body)
-                
+            
+            self.logger.debug('comment {}, keyword {}, bow {}'.format(comment.body, keyword_score, bow_score))
+            
             if keyword_score > 0 or bow_score > 0:            
                 time = datetime.datetime.utcfromtimestamp( comment.created_utc )
                 temp_df = pd.DataFrame([[comment.id, \
@@ -133,7 +138,7 @@ class Crawler:
                 self.logger.info('keyword_score: ' + str(keyword_score))
                 self.logger.info('bag of words score: ' + str(bow_score))
     
-    def load_subreddit_comments_scores(self):
+    def load_and_clear_subreddit_comments_scores(self):            
         self.DB.load_df(self.potential_hate_comments, 'comments', 'append')
         self.potential_hate_comments = self.potential_hate_comments.iloc[0:0]
         

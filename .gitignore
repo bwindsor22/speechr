@@ -6,3 +6,5 @@ keypairname.pem
 __pycache__/
 log_files/
 nohup.out
+.pytest_cache
+

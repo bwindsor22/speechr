@@ -35,7 +35,7 @@ class SQL_Loader():
     
     def load_df(self, data, table_name, exists):
         if data.empty or data is None:
-            self.logger.info('Skipping db load for empty df {}', table_name)
+            self.logger.info('Skipping db load for empty df: {}'.format(table_name))
             return
         data.to_sql( table_name, self.engine, if_exists = exists, index=False)
         
@@ -46,7 +46,7 @@ class SQL_Loader():
         except Exception as e:
             self.logger.error("Error executing statement {}".format(e))
             self.logger.exception(e)
-            return Nonesimple_flask_api
+            return None
         
         return self.sub_log_to_dict(result)
         

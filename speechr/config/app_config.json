@@ -10,6 +10,6 @@
     "crawler":{
     	"num_hate_subs":20,
     	"time_delta_in_days":2,
-    	"max_posts_per_sub":50
+    	"max_posts_per_sub":10
     }
 }
