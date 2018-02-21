@@ -91,7 +91,7 @@ class Crawler:
                     if datetime.datetime.utcfromtimestamp(sub.created_utc) > last_scan_time - self.offset:
                         sub.comments.replace_more(limit=0)
                         comment_list = sub.comments.list()
-                        self.logger.info('.. found {} comments'.format(len(comment_list)))
+                        self.logger.debug('.. found {} comments'.format(len(comment_list)))
                         self.process_comment_list(comment_list, i, hate_sub, columns, last_scan_time) 
                         
                 if self.potential_hate_comments.shape[0] > 0:
