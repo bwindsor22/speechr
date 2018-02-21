@@ -1,0 +1,14 @@
+README.md
+setup.py
+speechr/BagOfWordsClassifier.py
+speechr/TDFClassifierPrepare.py
+speechr/comment_classifier.py
+speechr/crawler.py
+speechr/hate_subreddit_finder.py
+speechr/scheduler.py
+speechr/simple_flask_api.py
+speechr/sql_loader.py
+speechr.egg-info/PKG-INFO
+speechr.egg-info/SOURCES.txt
+speechr.egg-info/dependency_links.txt
+speechr.egg-info/top_level.txt
