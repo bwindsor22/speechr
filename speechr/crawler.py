@@ -69,7 +69,7 @@ class Crawler:
         hate_subs = self.HRS.find_unique_hate_subreddits(self.number_of_hate_subs)
         self.logger.info('hate subs: ' + str(hate_subs))
 
-        columns = ['comment_id', 'created_utc', 'permalink','subreddit', 'vote_score', 'body']
+        columns = ['comment_id', 'created_utc', 'permalink','subreddit', 'vote_score', 'body', 'time_analyzed']
         self.potential_hate_comments = pd.DataFrame(data=np.zeros((0,len(columns))), columns=columns)
         
         scores_cols = ['comment_id', 'score']
@@ -119,12 +119,14 @@ class Crawler:
             
             if keyword_score > 0 or bow_score > 0:            
                 time = datetime.datetime.utcfromtimestamp( comment.created_utc )
+                current_time = datetime.datetime.utcnow()
                 temp_df = pd.DataFrame([[comment.id, \
                                          time, \
                                          comment.permalink, \
                                          hate_sub, \
                                          comment.score, \
-                                         comment.body ]], 
+                                         comment.body, \
+                                         current_time ]], 
                                        columns=columns)
                 
                 temp_keyword = pd.DataFrame([[comment.id, keyword_score]])
@@ -137,6 +139,7 @@ class Crawler:
                 self.logger.info(comment.body)
                 self.logger.info('keyword_score: ' + str(keyword_score))
                 self.logger.info('bag of words score: ' + str(bow_score))
+    
     
     def load_and_clear_subreddit_comments_scores(self):            
         self.DB.load_df(self.potential_hate_comments, 'comments', 'append')

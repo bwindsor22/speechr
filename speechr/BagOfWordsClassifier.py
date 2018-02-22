@@ -40,6 +40,6 @@ class BagOfWordsClassifier:
     def scores_to_class_score(self, score):
         return {
             2: 0,
-            1: 1,
+            1: 0,
             0: 5
         }[score]
