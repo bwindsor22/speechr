@@ -80,6 +80,7 @@ class Crawler:
         self.comment_count_per_scan = pd.DataFrame(data=np.zeros((0,len(comment_count_per_scan_cols))), columns=comment_count_per_scan_cols)
         
         for hate_sub in hate_subs:
+            keyword_count, bowscore_count = 0, 0
             self.logger.info('--------------------------')
             self.logger.info('scanning next sub: ' + hate_sub)
             self.logger.info('--------------------------')
@@ -96,8 +97,18 @@ class Crawler:
                         comment_list = sub.comments.list()
                         self.logger.debug('.. found {} comments'.format(len(comment_list)))
                         self.process_comment_list(comment_list, i, hate_sub, columns, last_scan_time) 
-                        
+            
                 if self.potential_hate_comments.shape[0] > 0:
+                    comment_count_DF = pd.DataFrame([[hate_sub, \
+                                                      datetime.datetime.utcnow(),\
+                                                      len(self.keyword_scores),\
+                                                      len(self.bag_of_words_scores)]])
+    
+                    self.comment_count_per_scan = self.comment_count_per_scan.append(comment_count_DF, ignore_index = True)
+                    self.logger.info('hate sub: ' + str(hate_sub) \
+                                     + '; keyword_score: ' + str(len(self.keyword_scores))\
+                                     + '; bow score: ' + str(len(self.bag_of_words_scores)))
+                    
                     self.load_and_clear_subreddit_comments_scores()
                         
             except NotFound as ex:
@@ -117,7 +128,6 @@ class Crawler:
 
             keyword_score = self.CC.analyze(comment.body)
             bow_score = self.BOWC.analyze(comment.body)
-            
             self.logger.debug('comment {}, keyword {}, bow {}'.format(comment.body, keyword_score, bow_score))
             
             if keyword_score > 0 or bow_score > 0:            
@@ -134,22 +144,15 @@ class Crawler:
                 
                 temp_keyword = pd.DataFrame([[comment.id, keyword_score]])
                 temp_bowc = pd.DataFrame([[comment.id, bow_score]])
-                
-                keyword_count = len(temp_keyword)
-                bowscore_count = len(temp_bowc)
-                
-                comment_count_per_scan_DF = pd.DataFrame([[hate_sub, current_time, keyword_count, bowscore_count]])
-                
+                                
                 self.potential_hate_comments = self.potential_hate_comments.append(temp_df, ignore_index=True)
                 self.keyword_scores = self.keyword_scores.append(temp_keyword, ignore_index=True)
                 self.bag_of_words_scores = self.bag_of_words_scores.append(temp_bowc, ignore_index=True)
-                self.comment_count_per_scan = self.comment_count_per_scan.append(comment_count_per_scan_DF, ignore_index = True)
                 
                 self.logger.info(comment.body)
                 self.logger.info('keyword_score: ' + str(keyword_score))
                 self.logger.info('bag of words score: ' + str(bow_score))
-    
-    
+                    
     def load_and_clear_subreddit_comments_scores(self):            
         self.DB.load_df(self.potential_hate_comments, 'comments', 'append')
         self.potential_hate_comments = self.potential_hate_comments.iloc[0:0]
@@ -159,6 +162,9 @@ class Crawler:
         
         self.DB.load_df(self.bag_of_words_scores, 'bow_scores', 'append')
         self.bag_of_words_scores = self.bag_of_words_scores.iloc[0:0]
+        
+        self.DB.load_df(self.comment_count_per_scan, 'comment_count_per_subreddit','append')
+        self.comment_count_per_scan = self.comment_count_per_scan.iloc[0:0]
         
     def run(self):
         self.collect()
