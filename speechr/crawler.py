@@ -80,13 +80,11 @@ class Crawler:
         self.comment_count_per_scan = pd.DataFrame(data=np.zeros((0,len(comment_count_per_scan_cols))), columns=comment_count_per_scan_cols)
         
         for hate_sub in hate_subs:
-            keyword_count, bowscore_count = 0, 0
             self.logger.info('--------------------------')
             self.logger.info('scanning next sub: ' + hate_sub)
             self.logger.info('--------------------------')
                     
             subreddit = self.reddit.subreddit(hate_sub)
-
             try:    
                 last_scan_time = self.get_last_scan(hate_sub) 
                 self.logger.info('last scan time {} '.format(str(last_scan_time)))
