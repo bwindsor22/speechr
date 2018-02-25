@@ -25,21 +25,7 @@ Calls next_run on the default scheduler instance.
 import schedule
 import time
 import crawler
-import logging
-import logging.config
-import os
-import json
-
-def setup_logging():    
-    app_path = os.path.dirname(os.path.abspath(__file__))
-    logger_config = os.path.join(os.path.sep, app_path, 'config', 'logging_config') + '.json'
-    if os.path.exists(logger_config):
-        with open(logger_config, 'rt') as f:
-            config = json.load(f)
-
-    logging.config.dictConfig(config)
-    logger = logging.getLogger("scheduler")
-    return logger
+from speechr import config_logging_setup
 
 def run_jobs(logger):
     try:
@@ -66,6 +52,6 @@ def start_crawler(logger):
         time.sleep(10)
         
 if __name__ == '__main__':
-    logger = setup_logging()
+    logger = config_logging_setup.setup_logging()
     run_jobs(logger)
     
