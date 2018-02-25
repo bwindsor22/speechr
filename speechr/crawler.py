@@ -14,8 +14,9 @@ import datetime
 import pandas as pd
 import numpy as np
 import logging
-import json
+import pickle
 
+import config_logging_setup
 import comment_classifier
 import BagOfWordsClassifier
 import hate_subreddit_finder
@@ -25,9 +26,10 @@ class Crawler:
     def __init__(self):
         self.logger = logging.getLogger('default')
         
-        app_path = os.path.dirname(os.path.abspath(__file__))
-        self.app_config = self.get_app_config(app_path)
-        
+        app_path = config_logging_setup.get_app_path()
+        self.app_config = config_logging_setup.get_app_config()
+        self.logger.info('loaded config {}'.format(self.app_config))
+
         self.reddit = praw.Reddit(self.app_config['reddit_bot'])
 
         slurs = self.load_csv_resource_to_list('racial_slurs', app_path)        
@@ -43,14 +45,6 @@ class Crawler:
         
         self.DB = sql_loader.SQL_Loader(self.app_config)
         self.subreddit_last_scanned_dates = self.DB.pull_sub_log()
-        
-    def get_app_config(self, app_path):
-        config_path = os.path.join(os.path.sep, app_path, 'config', 'app_config') + '.json'
-        if os.path.exists(config_path):
-            with open(config_path, 'rt') as f:
-                config = json.load(f)
-        self.logger.info('loaded config {}'.format(config))
-        return config
                 
     def load_csv_resource_to_list(self, file_name, app_path):
         slurs_file = os.path.join(os.path.sep, app_path, 'ref', file_name) + '.csv'
@@ -76,7 +70,7 @@ class Crawler:
         self.keyword_scores = pd.DataFrame(data=np.zeros((0,len(scores_cols))), columns=scores_cols)
         self.bag_of_words_scores = pd.DataFrame(data=np.zeros((0,len(scores_cols))), columns=scores_cols)
         
-        comment_count_per_scan_cols = ['subreddit', 'time_scanned', 'num_comments_scanned', 'num_hate_comments']
+        comment_count_per_scan_cols = ['subreddit', 'time_scanned', 'comments_scanned', 'keyword_hate_comments', 'bow_hate_comments']
         self.comment_count_per_scan = pd.DataFrame(data=np.zeros((0,len(comment_count_per_scan_cols))), columns=comment_count_per_scan_cols)
         
         for hate_sub in hate_subs:
@@ -99,13 +93,16 @@ class Crawler:
                         self.process_comment_list(comment_list, self.i, hate_sub, columns, last_scan_time) 
             
                 if self.potential_hate_comments.shape[0] > 0:
-                    
+                    count_keyword_scores = len(self.keyword_scores[self.keyword_scores.score > 0])
+                    count_bow_scores = len(self.bag_of_words_scores[self.bag_of_words_scores.score > 0])
                     comment_count_DF = pd.DataFrame([[hate_sub, \
                                                       datetime.datetime.utcnow(),\
                                                       self.comments_scanned,\
-                                                      len(self.bag_of_words_scores)]])
+                                                      count_keyword_scores, \
+                                                      count_bow_scores]], \
+                                                      columns=comment_count_per_scan_cols)
     
-                    self.comment_count_per_scan = self.comment_count_per_scan.append(comment_count_DF, ignore_index = True)
+                    self.comment_count_per_scan = pd.concat([self.comment_count_per_scan.reset_index(drop=True), comment_count_DF.reset_index(drop=True)], axis=0)
                     self.logger.info('hate sub: ' + str(hate_sub) \
                                      + '; comments scanned: ' + str(self.comments_scanned)\
                                      + '; bow score: ' + str(len(self.bag_of_words_scores)))
@@ -115,7 +112,7 @@ class Crawler:
             except NotFound as ex:
                 self.logger.info('Subreddit {} not found'.format(hate_sub))
             except Exception as e:
-                self.logger.info('Error processing sub: {}, {}'.format(hate_sub, e))
+                self.logger.exception('Error processing sub: {}'.format(hate_sub))
 
     def process_comment_list(self,comment_list, i, hate_sub, columns, last_scan_time):                    
         for comment in comment_list:
@@ -143,12 +140,12 @@ class Crawler:
                                          current_time ]], 
                                        columns=columns)
                 
-                temp_keyword = pd.DataFrame([[comment.id, keyword_score]])
-                temp_bowc = pd.DataFrame([[comment.id, bow_score]])
+                temp_keyword = pd.DataFrame([[comment.id, keyword_score]], columns=self.keyword_scores.columns.values.tolist())
+                temp_bowc = pd.DataFrame([[comment.id, bow_score]], columns=self.bag_of_words_scores.columns.values.tolist())
                                 
-                self.potential_hate_comments = self.potential_hate_comments.append(temp_df, ignore_index=True)
-                self.keyword_scores = self.keyword_scores.append(temp_keyword, ignore_index=True)
-                self.bag_of_words_scores = self.bag_of_words_scores.append(temp_bowc, ignore_index=True)
+                self.potential_hate_comments = pd.concat([self.potential_hate_comments.reset_index(drop=True), temp_df.reset_index(drop=True)], axis=0)
+                self.keyword_scores = pd.concat([self.keyword_scores.reset_index(drop=True), temp_keyword.reset_index(drop=True)], axis=0)
+                self.bag_of_words_scores = pd.concat([self.bag_of_words_scores.reset_index(drop=True), temp_bowc.reset_index(drop=True)], axis=0)
                 
                 self.logger.info(comment.body)
                 self.logger.info('keyword_score: ' + str(keyword_score))

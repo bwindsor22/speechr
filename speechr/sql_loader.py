@@ -39,16 +39,24 @@ class SQL_Loader():
             return
         data.to_sql( table_name, self.engine, if_exists = exists, index=False)
         
-    def pull_sub_log(self):        
-        sql = text('select subreddit,max("time_ran_utc") from scanned_log group by subreddit')
+    
+    def read_sql(self, sql):
+        return pd.read_sql(sql, self.engine)
+    
+    def execute_sql(self, sql_text):
+        sql = text(sql_text)
         try:
             result = self.engine.execute(sql)
         except Exception as e:
             self.logger.error("Error executing statement {}".format(e))
             self.logger.exception(e)
             return None
-        
-        return self.sub_log_to_dict(result)
+        return result
+    
+    def pull_sub_log(self):        
+        df = self.execute_sql('select subreddit,max("time_ran_utc") from scanned_log group by subreddit')
+        if df is not None:
+            return self.sub_log_to_dict(df)
         
     def sub_log_to_dict(self, result):
         subreddit, dates = [], []
