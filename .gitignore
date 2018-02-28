@@ -4,7 +4,7 @@ praw.ini
 *~
 keypairname.pem
 __pycache__/
-log_files/
+log_files/logfile.log
 nohup.out
 .pytest_cache
 
