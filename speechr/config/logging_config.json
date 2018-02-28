@@ -4,7 +4,8 @@
 	    "fileHandler":{
 	        "class":"logging.FileHandler",
 	        "formatter":"myFormatter",
-	        "filename":"../log_files/logfile.log"
+	        "filename":"../log_files/logfile.log",
+	        "encoding":"utf-8"
         }
     },        
 	"loggers":{
