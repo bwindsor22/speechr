@@ -9,29 +9,22 @@ http://<ipv4publicip>:5000/
 
 import json
 import sql_loader
-import os
 import pandas as pd
+import config_logging_setup
 
 from flask import Flask
 app = Flask(__name__)
+config_logging_setup.setup_logging()
+app_config = config_logging_setup.get_app_config()
+DB = sql_loader.SQL_Loader(app_config)
 
-@app.route('/')
-def hello_world():
-    
-    app_path = os.path.dirname(os.path.abspath(__file__))
-    config_path = os.path.join(os.path.sep, app_path, 'config', 'app_config') + '.json'
-    if os.path.exists(config_path):
-        with open(config_path, 'rt') as f:
-            config = json.load(f)
-    
-    s = sql_loader.SQL_Loader(config)
-    
-    sql = '''
-        select *
-        from comments
-        order by created_utc desc'''
-    
-    engine = s.get_engine()
-    df = pd.read_sql(sql, engine)
-    return df.to_json(orient='records')
+@app.route('/all_comments')
+def all_comments():
+    return 1
 
+@app.route('/comment_rates')
+def comment_rates():
+    return 1    
+
+#if __name__ == '__main__':
+#    app.run(host='0.0.0.0')

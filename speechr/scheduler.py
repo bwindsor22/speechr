@@ -26,6 +26,7 @@ import schedule
 import time
 import crawler
 from speechr import config_logging_setup
+from speechr import metrics_api_cache
 
 def run_jobs(logger):
     try:
@@ -37,11 +38,14 @@ def run_jobs(logger):
 def start_crawler(logger):
     logger.info('Starting job')
     c = crawler.Crawler()
+    cache = metrics_api_cache.Metrics_api_cache()
+    
     
     # define all the tasks you want to do
     def run_once():
         c.run()
-        
+        cache = cache.setup_cache()
+    
     schedule.every(1).hour.do(run_once)
     schedule.run_all()
     

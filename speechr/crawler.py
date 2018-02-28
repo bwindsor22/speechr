@@ -6,6 +6,7 @@ Created on Sun Jan  7 21:35:55 2018
 """
 import praw
 from prawcore.exceptions import NotFound
+from prawcore.exceptions import Forbidden
 
 import itertools
 import os
@@ -14,7 +15,6 @@ import datetime
 import pandas as pd
 import numpy as np
 import logging
-import pickle
 
 import config_logging_setup
 import comment_classifier
@@ -111,7 +111,9 @@ class Crawler:
                         
             except NotFound as ex:
                 self.logger.info('Subreddit {} not found'.format(hate_sub))
-            except Exception as e:
+            except Forbidden as ex:
+                self.logger.info('Subreddit {} forbidden'.format(hate_sub))
+            except Exception as ex:
                 self.logger.exception('Error processing sub: {}'.format(hate_sub))
 
     def process_comment_list(self,comment_list, i, hate_sub, columns, last_scan_time):                    

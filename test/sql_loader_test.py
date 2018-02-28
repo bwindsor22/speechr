@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Feb 25 10:12:22 2018
-
-@author: bradwindsor
 """
 
 import pytest
