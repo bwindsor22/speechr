@@ -153,7 +153,7 @@ class Crawler:
                 self.logger.info('keyword_score: ' + str(keyword_score))
                 self.logger.info('bag of words score: ' + str(bow_score))
                 
-            # self.logger.info('comment_length = ' + str(self.i))   
+            #self.logger.info('comment_length = ' + str(self.i))   
             self.comments_scanned = self.i
                 
     def load_and_clear_subreddit_comments_scores(self):            
