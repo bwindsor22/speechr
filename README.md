@@ -12,7 +12,6 @@ Program to detect hate speech on Reddit with the aim of tracking and reporting i
 4. Install all python packages <br>
 ```
 	pip install -r .\admin\requirements.txt
-  conda install -c anaconda psycopg2
 ```
 5. Make the package by running run_setup.sh <br>
 	Windows: setup.py develop <br>
