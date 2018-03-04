@@ -13,7 +13,7 @@ class FlaskApp:
         self.app.add_url_rule('/comment_rates', Endpoints.comment_rates.name, self.comment_rates)
         self.app.add_url_rule('/times_refreshed', Endpoints.times_refreshed.name, self.times_refreshed)
         
-        self.app.run()
+        self.app.run(host='0.0.0.0')
     
     def status(self):
         return 'Server running'
