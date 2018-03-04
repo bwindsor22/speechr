@@ -4,7 +4,6 @@ Program to detect hate speech on Reddit with the aim of tracking and reporting i
 
 1. Clone repository from github 
 ```
-	cd <desired directory> <br>
 	git clone https://github.com/bwindsor22/speechr.git
 ```
 2. Gather api key from secret bitbucket repo <br>
@@ -15,4 +14,3 @@ Program to detect hate speech on Reddit with the aim of tracking and reporting i
 ```
 5. Make the package by running run_setup.sh <br>
 	Windows: setup.py develop <br>
-6.
