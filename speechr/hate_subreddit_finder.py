@@ -55,4 +55,13 @@ class HateSubredditFinder:
                             self.hate_sub_reports = self.hate_sub_reports.append(temp_df, ignore_index=True)                        
                 else:
                     self.logger.info("This link has no associated subreddit: {}".format(sub.url))
+    
+    def get_subs_from_log(self):
+        cmd = """select subreddit, max(time_ran_utc) from scanned_log 
+        where now()::timestamp - time_ran_utc < interval '1 day' group by subreddit"""
+        total_scanned_subs = self.sql_load.engine.execute(cmd)
+        result = self.sql_load.sub_log_to_dict(total_scanned_subs)
+        print(result)    
+        # lists only subreddit
+        """select distinct(subreddit) from scanned_log where current_date - time_ran_utc < interval '1 day';"""
         
