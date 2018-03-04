@@ -12,11 +12,13 @@ from speechr.endpoints_enum import Endpoints
 from multiprocessing import Manager
 
 
-class Metrics_api_cache():
+class Cache_Helper():
     def __init__(self):
         app_config = config_logging_setup.get_app_config()
         self.DB = sql_loader.SQL_Loader(app_config)
         self.logger = logging.getLogger('cache')
+        
+        self.prerequisite_tables = ['comments'] #, 'comment_count_per_subreddit']
         
         manager = Manager()
         self.cache = manager.dict()
@@ -62,3 +64,17 @@ class Metrics_api_cache():
                 order by time_scanned desc;
                 '''
         return statements
+    
+    def prerequisite_tables_exist(self):
+        for table in self.prerequisite_tables:
+            statement = '''
+            select exists (
+                select 1
+                from information_schema.tables
+                where table_name = '{}' 
+            )    
+            '''.format(table)
+            exists_tbl = self.DB.read_sql(statement)
+            if not (exists_tbl.shape[0] > 0 and exists_tbl.values[[0]]):
+                return False
+        return True

@@ -38,12 +38,10 @@ def run_jobs(logger):
         logger.error('Job failed')
         logger.exception(ex)
 
-def start_flask_and_cache():
-    cache_maker = metrics_api_cache.Metrics_api_cache()
-    cache = cache_maker.refresh_cache()
+def start_flask_and_cache(cache_helper):
+    cache = cache_helper.refresh_cache()
     thread = Process(target=run_flask, args=(cache,))
     thread.start()
-    return cache_maker
 
 def run_flask(cache):
     flask_app.FlaskApp(cache)
@@ -52,12 +50,18 @@ def run_flask(cache):
 def start_crawler(logger):
     logger.info('Starting job')
     c = crawler.Crawler()
-    cache_maker = start_flask_and_cache()
+    cache_helper = metrics_api_cache.Cache_Helper()
+    
+    if not cache_helper.prerequisite_tables_exist():
+        logger.info('Cached tables not found. Running crawler.')
+        c.run()
+        
+    start_flask_and_cache(cache_helper)
 
     # define all the tasks you want to do
     def run_once():
         c.run()
-        cache_maker.refresh_cache()
+        cache_helper.refresh_cache()
     
     
     schedule.every(1).hour.do(run_once)
