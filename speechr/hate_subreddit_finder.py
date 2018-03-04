@@ -55,4 +55,10 @@ class HateSubredditFinder:
                             self.hate_sub_reports = self.hate_sub_reports.append(temp_df, ignore_index=True)                        
                 else:
                     self.logger.info("This link has no associated subreddit: {}".format(sub.url))
+    
+    def get_subs_from_log(self):
+        cmd = 'select distinc subreddit from comment_count_per_subreddit;'
+        total_scanned_subs = self.sql_load.engine.execute(cmd)
+        result = self.sql_load.sub_log_to_dict(total_scanned_subs)
+        print(result)    
         
