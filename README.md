@@ -7,6 +7,9 @@ Program to detect hate speech on Reddit with the aim of tracking and reporting i
 	git clone https://github.com/bwindsor22/speechr.git
 ```
 2. Gather api key from secret bitbucket repo <br>
+```
+	git clone https://bwindsor22@bitbucket.org/bwindsor22/speechr-secret.git
+```
 3. Move praw.ini file to speechr directory from secret repo <br>
 4. Install all python packages <br>
 ```
