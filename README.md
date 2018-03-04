@@ -10,7 +10,11 @@ Program to detect hate speech on Reddit with the aim of tracking and reporting i
 ```
 	git clone https://bwindsor22@bitbucket.org/bwindsor22/speechr-secret.git
 ```
-3. Move praw.ini file to speechr directory from secret repo <br>
+3. Copy praw.ini file to speechr directory from secret repo and move the aws key to the admin folder.<br>
+```
+	cp speechr-secret/praw.ini speechr/praw.ini
+	cp speechr-secret/keypairname.pem speechr/admin/
+```
 4. Install all python packages <br>
 ```
 	pip install -r .\admin\requirements.txt
