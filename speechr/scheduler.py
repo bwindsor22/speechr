@@ -25,8 +25,11 @@ Calls next_run on the default scheduler instance.
 import schedule
 import time
 import crawler
+from multiprocessing import Process
+
 from speechr import config_logging_setup
 from speechr import metrics_api_cache
+from speechr import flask_app
 
 def run_jobs(logger):
     try:
@@ -35,20 +38,31 @@ def run_jobs(logger):
         logger.error('Job failed')
         logger.exception(ex)
 
+def start_flask_and_cache():
+    cache_maker = metrics_api_cache.Metrics_api_cache()
+    cache = cache_maker.refresh_cache()
+    thread = Process(target=run_flask, args=(cache,))
+    thread.start()
+    return cache_maker
+
+def run_flask(cache):
+    flask_app.FlaskApp(cache)
+    
+
 def start_crawler(logger):
     logger.info('Starting job')
     c = crawler.Crawler()
-    cache = metrics_api_cache.Metrics_api_cache()
-    
-    
+    cache_maker = start_flask_and_cache()
+
     # define all the tasks you want to do
     def run_once():
         c.run()
-        cache = cache.setup_cache()
+        cache_maker.refresh_cache()
+    
     
     schedule.every(1).hour.do(run_once)
     schedule.run_all()
-    
+
     
     while True:
         logger.info("Waiting. Next scheduled run start in local time: {}".format(schedule.next_run()))

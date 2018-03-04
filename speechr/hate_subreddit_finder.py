@@ -10,11 +10,13 @@ import pandas as pd
 import numpy as np
 import datetime
 
+from speechr import resource_loader
+
 class HateSubredditFinder:
-    def __init__(self, reddit, subreddits_to_scan):
+    def __init__(self, reddit):
         self.logger = logging.getLogger('default')
         self.reddit = reddit
-        self.subreddits_to_scan = subreddits_to_scan
+        self.subreddits_to_scan = resource_loader.load_csv_resource_to_list('policing_subreddits')
         self.collected = False
 
     def find_unique_hate_subreddits(self, lim):

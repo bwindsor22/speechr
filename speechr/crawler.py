@@ -8,9 +8,7 @@ import praw
 from prawcore.exceptions import NotFound
 from prawcore.exceptions import Forbidden
 
-import itertools
-import os
-import csv
+
 import datetime
 import pandas as pd
 import numpy as np
@@ -21,40 +19,31 @@ import comment_classifier
 import BagOfWordsClassifier
 import hate_subreddit_finder
 import sql_loader
+import resource_loader
 
 class Crawler:
     def __init__(self):
         self.logger = logging.getLogger('default')
         
-        app_path = config_logging_setup.get_app_path()
         self.app_config = config_logging_setup.get_app_config()
         self.logger.info('loaded config {}'.format(self.app_config))
 
         self.reddit = praw.Reddit(self.app_config['reddit_bot'])
 
-        slurs = self.load_csv_resource_to_list('racial_slurs', app_path)        
-        violent_words = self.load_csv_resource_to_list('violent_words', app_path)
-        subreddits_to_scan = self.load_csv_resource_to_list('policing_subreddits', app_path)
+        slurs = resource_loader.load_csv_resource_to_list('racial_slurs')        
+        violent_words = resource_loader.load_csv_resource_to_list('violent_words')
         
         self.CC = comment_classifier.CommentClassifier(slurs, violent_words)
         self.BOWC = BagOfWordsClassifier.BagOfWordsClassifier()
         
-        self.HRS = hate_subreddit_finder.HateSubredditFinder(self.reddit, subreddits_to_scan)
+        self.HRS = hate_subreddit_finder.HateSubredditFinder(self.reddit)
         self.number_of_hate_subs = self.app_config['crawler']['num_hate_subs']
         self.offset = datetime.timedelta(self.app_config['crawler']['time_delta_in_days'])
         
         self.DB = sql_loader.SQL_Loader(self.app_config)
         self.subreddit_last_scanned_dates = self.DB.pull_sub_log()
                 
-    def load_csv_resource_to_list(self, file_name, app_path):
-        slurs_file = os.path.join(os.path.sep, app_path, 'ref', file_name) + '.csv'
-        slurs = []
-        with open(slurs_file, 'r') as file:
-            rdr = csv.reader(file)
-            for row in rdr:
-                slurs.append(row)
-        slurs = list(itertools.chain.from_iterable(slurs))
-        return slurs
+
                 
     def collect(self):
         self.logger.info('collecting...')

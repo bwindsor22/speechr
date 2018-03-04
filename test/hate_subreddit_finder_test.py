@@ -9,8 +9,7 @@ from speechr import hate_subreddit_finder
 
 def HRS():
     reddit = praw.Reddit('bot1')
-    subreddits_to_scan = ['againsthatesubreddits', 'antisemitismwatch', 'internethitlers']
-    return hate_subreddit_finder.HateSubredditFinder(reddit, subreddits_to_scan)
+    return hate_subreddit_finder.HateSubredditFinder(reddit)
     
 
 def test_HRS():
