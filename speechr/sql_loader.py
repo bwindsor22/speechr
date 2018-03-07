@@ -68,3 +68,11 @@ class SQL_Loader():
         dict_log = dict(zip(subreddit,dates))
         
         return dict_log
+    
+    def sql_df_to_array (self,result,i):
+        data = []
+        
+        for _ in result:
+            data.append(_[i])
+        
+        return data
