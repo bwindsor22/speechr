@@ -56,12 +56,14 @@ class Cache_Helper():
         statements[Endpoints.all_comments] = '''
                 select *
                 from comments
-                order by created_utc desc;
+                order by created_utc desc
+		limit 10;
                 '''
         statements[Endpoints.comment_rates] = '''
                 select *
                 from comment_count_per_subreddit
-                order by time_scanned desc;
+                order by time_scanned desc
+		limit 10;
                 '''
         return statements
     
