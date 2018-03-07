@@ -70,6 +70,7 @@ class SQL_Loader():
         return dict_log
     
     def sql_df_to_array (self,result,i):
+        # where i = target column in df
         data = []
         
         for _ in result:
