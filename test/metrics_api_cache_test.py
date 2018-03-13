@@ -9,7 +9,6 @@ from speechr import config_logging_setup
 from speechr.endpoints_enum import Endpoints
 import pytest
 
-
 @pytest.fixture
 def cache():
     config_logging_setup.setup_logging()

@@ -8,6 +8,8 @@ Pre-loads items from database into in-memory json strings for use with flask api
 import logging
 from speechr import sql_loader
 from speechr import config_logging_setup
+from speechr import reported_comment_rates
+
 from speechr.endpoints_enum import Endpoints
 from multiprocessing import Manager
 
@@ -17,24 +19,39 @@ class Cache_Helper():
         app_config = config_logging_setup.get_app_config()
         self.DB = sql_loader.SQL_Loader(app_config)
         self.logger = logging.getLogger('cache')
-        
-        self.prerequisite_tables = ['comments'] #, 'comment_count_per_subreddit']
+        self.comment_rates = reported_comment_rates.Comment_Rates()
+        self.prerequisite_tables = ['comments']
         
         manager = Manager()
         self.cache = manager.dict()
 
 
     def refresh_cache(self):
+        self.refresh_raw_queries()
+        self.refresh_comment_rates()
+
+        self.cache[Endpoints.times_refreshed] = self.increment_refresh_count()
+    
+
+        return self.cache
+    
+    def refresh_raw_queries(self):
         statements = self.get_sql_statements()
 
         for metric, sql in statements.items():
             self.cache[metric] = self.sql_to_json(sql)
+        
+        self.logger.info('Raw queries refreshed')
 
-        self.cache[Endpoints.times_refreshed] = self.increment_refresh_count()
     
-        self.logger.info('Refreshed cache')
+    def refresh_comment_rates(self):
+        rates = self.comment_rates.get_results()
+        for metric, values in rates.items():
+            self.cache[metric] = values.to_json(orient='records')
+        
+        self.logger.info('Comment rates refreshed')
 
-        return self.cache
+    
 
     def increment_refresh_count(self):
         '''
