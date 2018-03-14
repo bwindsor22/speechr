@@ -17,6 +17,7 @@ export default class MenuExampleSecondary extends Component {
         <Menu.Item name='Tiled heat map' href='/' onClick={this.handleItemClick} />
         <Menu.Item name='Attendance' href='/attendance' onClick={this.handleItemClick} />
         <Menu.Item name='Flow' href='/flow' onClick={this.handleItemClick} />
+        <Menu.Item name='Blog' href='/blog' onClick={this.handleItemClick} />
       </Menu>
     )
   }

@@ -162,8 +162,6 @@ const options = {
   };
 
 class Tiled extends React.Component{
-
-
   render() {
       return React.createElement( Chart,
               {

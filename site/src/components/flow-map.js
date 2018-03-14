@@ -34,6 +34,9 @@ class Examples extends React.Component{
     return (
       <div>
         <div>
+          Hello my name is brad
+        </div>
+        <div>
         <Plot
           data={[
             {

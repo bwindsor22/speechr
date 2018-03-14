@@ -11,6 +11,7 @@ import Header from './header.js'
 import TiledHeatMap from './tiled-heat-map.js'
 import Attendance from './total-attendance.js'
 import FlowMap from './flow-map.js'
+import Blog from './my-blog.js'
 
 class App extends Component {
   render() {
@@ -23,6 +24,7 @@ class App extends Component {
               <Route exact path="/" component={TiledHeatMap} />
               <Route path="/attendance" component={Attendance} />
               <Route path="/flow" component={FlowMap} />
+              <Route path="/blog" component={Blog} />
             </Switch>
           </Router>
       </div>
