@@ -54,9 +54,31 @@ class SQL_Loader():
         return result
     
     def pull_sub_log(self):        
-        df = self.execute_sql('select subreddit,max("time_ran_utc") from scanned_log group by subreddit')
+        text = 'select subreddit,max("time_ran_utc") from scanned_log group by subreddit'
+        place_holder = []
+        
+        try:
+            df = self.execute_sql(text)
+        except Exception as e:
+            self.logger.error("error pulling scanned log history")
+            return place_holder
+            
         if df is not None:
             return self.sub_log_to_dict(df)
+        
+    def subs_from_log(self):
+        text = """select subreddit, max(time_ran_utc) from scanned_log 
+        where now()::timestamp - time_ran_utc < interval '1 day' group by subreddit"""
+        place_holder = []
+        
+        try:
+            df = self.execute_sql(text)
+        except Exception as e:
+            self.logger.error("error pulling subs from scanned log history")
+            return place_holder
+        
+        if df is not None:
+            return self.sql_df_to_array(df,0)
         
     def sub_log_to_dict(self, result):
         subreddit, dates = [], []

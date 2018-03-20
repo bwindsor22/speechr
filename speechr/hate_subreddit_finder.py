@@ -50,7 +50,12 @@ class HateSubredditFinder:
 
         final_sub_list = []
         archive = self.get_subs_from_log()
-        helper_set = set(archive)
+        # self.logger.info(archive) return an empty list = none type
+        if not archive:
+            helper_set = []
+            archive = []
+        else:
+            helper_set = set(archive)
         
         for to_scan in self.subreddits_to_scan:        
             subreddit = self.reddit.subreddit(to_scan)
@@ -71,15 +76,17 @@ class HateSubredditFinder:
                             self.hate_sub_reports = self.hate_sub_reports.append(temp_df, ignore_index=True)   
                 else:
                     self.logger.info("This link has no associated subreddit: {}".format(sub.url))
-
-        final_sub_list.extend(archive)
-
+            
+        self.logger.info(final_sub_list)
+        final_sub_list = final_sub_list + archive
+        # self.logger.info(final_sub_list)
         
     def get_subs_from_log(self):
         cmd = """select subreddit, max(time_ran_utc) from scanned_log 
         where now()::timestamp - time_ran_utc < interval '1 day' group by subreddit"""
-        total_scanned_subs = self.SQL.engine.execute(cmd)
-        result = self.SQL.sql_df_to_array(total_scanned_subs,0)
+        #total_scanned_subs = self.SQL.engine.execute(cmd)
+        #result = self.SQL.sql_df_to_array(total_scanned_subs,0)
+        result = self.SQL.subs_from_log()
         return result
         # print(result)    
         # lists only subreddit
