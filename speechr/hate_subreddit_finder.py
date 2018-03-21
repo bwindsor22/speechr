@@ -30,8 +30,16 @@ class HateSubredditFinder:
         if not self.collected:
             self.collect_hate_subreddit_submissions(lim)
             self.collected = True
+            
+        archive_subs = self.get_subs_from_log()
         unique_subs = self.hate_sub_reports.subreddit_linked.unique()
-        return unique_subs
+        unique_subs = unique_subs.tolist()
+        
+        archive_subs_set = set(archive_subs)
+        unique_subs_set = set(unique_subs)
+        archive_unique_subs = archive_subs_set - unique_subs_set
+
+        return unique_subs + list(archive_unique_subs)
 
     def get_hate_sub_reports(self, lim):
         if not self.collected:
@@ -47,16 +55,6 @@ class HateSubredditFinder:
         columns = ['submission_id', 'created_utc', 'place_submitted','subreddit_linked', 'vote_score', 'title', 'permalink']
         self.hate_sub_reports = pd.DataFrame(data=np.zeros((0,len(columns))), columns=columns)
         
-
-        final_sub_list = []
-        archive = self.get_subs_from_log()
-        # self.logger.info(archive) return an empty list = none type
-        if not archive:
-            helper_set = []
-            archive = []
-        else:
-            helper_set = set(archive)
-        
         for to_scan in self.subreddits_to_scan:        
             subreddit = self.reddit.subreddit(to_scan)
             for sub in subreddit.hot(limit=lim):
@@ -67,8 +65,7 @@ class HateSubredditFinder:
                         hate_sub = url_parts[4].lower()
                         
                         #not r/againsthatesubreddits or r/internethitlers
-                        if hate_sub not in self.subreddits_to_scan and hate_sub not in helper_set: 
-                            final_sub_list.append(hate_sub)
+                        if hate_sub not in self.subreddits_to_scan:
                             
                             time = datetime.datetime.utcfromtimestamp(sub.created_utc)
                             temp_df = pd.DataFrame([[sub.id, time, to_scan, hate_sub, sub.score, sub.title, sub.permalink]], \
@@ -76,19 +73,15 @@ class HateSubredditFinder:
                             self.hate_sub_reports = self.hate_sub_reports.append(temp_df, ignore_index=True)   
                 else:
                     self.logger.info("This link has no associated subreddit: {}".format(sub.url))
-            
-        self.logger.info(final_sub_list)
-        final_sub_list = final_sub_list + archive
-        # self.logger.info(final_sub_list)
+    
         
     def get_subs_from_log(self):
         cmd = """select subreddit, max(time_ran_utc) from scanned_log 
         where now()::timestamp - time_ran_utc < interval '1 day' group by subreddit"""
-        #total_scanned_subs = self.SQL.engine.execute(cmd)
-        #result = self.SQL.sql_df_to_array(total_scanned_subs,0)
+
         result = self.SQL.subs_from_log()
         return result
-        # print(result)    
+    
         # lists only subreddit
         """select distinct(subreddit) from scanned_log where current_date - time_ran_utc < interval '1 day';"""
         
