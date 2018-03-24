@@ -78,8 +78,9 @@ class Crawler:
                     if datetime.datetime.utcfromtimestamp(sub.created_utc) > last_scan_time - self.offset:
                         sub.comments.replace_more(limit=0)
                         comment_list = sub.comments.list()
+                        redditor_list = [b.author.name for b in sub.comments]
                         self.logger.debug('.. found {} comments'.format(len(comment_list)))
-                        self.process_comment_list(comment_list, self.i, hate_sub, columns, last_scan_time) 
+                        self.process_comment_list(comment_list, redditor_list, self.i, hate_sub, columns, last_scan_time) 
             
                 if self.potential_hate_comments.shape[0] > 0:
                     count_keyword_scores = len(self.keyword_scores[self.keyword_scores.score > 0])
@@ -105,7 +106,7 @@ class Crawler:
             except Exception as ex:
                 self.logger.exception('Error processing sub: {}'.format(hate_sub))
 
-    def process_comment_list(self,comment_list, i, hate_sub, columns, last_scan_time):                    
+    def process_comment_list(self,comment_list, redditor_list, i, hate_sub, columns, last_scan_time):                    
         for comment in comment_list:
             if datetime.datetime.utcfromtimestamp(comment.created_utc) < last_scan_time:
                 self.logger.debug('skipping')
@@ -117,6 +118,7 @@ class Crawler:
 
             keyword_score = self.CC.analyze(comment.body)
             bow_score = self.BOWC.analyze(comment.body)
+            redditor_list = sub.author.name
             self.logger.debug('comment {}, keyword {}, bow {}'.format(comment.body, keyword_score, bow_score))
             
             if keyword_score > 0 or bow_score > 0:            
@@ -191,3 +193,7 @@ class Crawler:
             return datetime.datetime.min + self.offset
         else:
             return self.subreddit_last_scanned_dates.get(subreddit)
+
+if __name__ == "__main__":
+    b = Crawler()
+    b.run()
