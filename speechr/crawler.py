@@ -51,8 +51,8 @@ class Crawler:
         
         hate_subs = self.HRS.find_unique_hate_subreddits(self.number_of_hate_subs)
         self.logger.info('hate subs: ' + str(hate_subs))
-
-        columns = ['comment_id', 'created_utc', 'permalink','subreddit', 'vote_score', 'body', 'time_analyzed']
+        """CHANGE THIS"""
+        columns = ['comment_id','author', 'created_utc', 'permalink','subreddit', 'vote_score', 'body', 'time_analyzed']
         self.potential_hate_comments = pd.DataFrame(data=np.zeros((0,len(columns))), columns=columns)
         
         scores_cols = ['comment_id', 'score']
@@ -108,6 +108,7 @@ class Crawler:
 
     def process_comment_list(self,comment_list, redditor_list, i, hate_sub, columns, last_scan_time):                    
         for comment in comment_list:
+            j = 0
             if datetime.datetime.utcfromtimestamp(comment.created_utc) < last_scan_time:
                 self.logger.debug('skipping')
                 continue
@@ -118,13 +119,14 @@ class Crawler:
 
             keyword_score = self.CC.analyze(comment.body)
             bow_score = self.BOWC.analyze(comment.body)
-            redditor_list = sub.author.name
             self.logger.debug('comment {}, keyword {}, bow {}'.format(comment.body, keyword_score, bow_score))
             
             if keyword_score > 0 or bow_score > 0:            
+                # print(redditor_list)
                 time = datetime.datetime.utcfromtimestamp( comment.created_utc )
                 current_time = datetime.datetime.utcnow()
                 temp_df = pd.DataFrame([[comment.id, \
+                                         redditor_list[j], \
                                          time, \
                                          comment.permalink, \
                                          hate_sub, \
@@ -132,7 +134,7 @@ class Crawler:
                                          comment.body, \
                                          current_time ]], 
                                        columns=columns)
-                
+                j += 1
                 temp_keyword = pd.DataFrame([[comment.id, keyword_score]], columns=self.keyword_scores.columns.values.tolist())
                 temp_bowc = pd.DataFrame([[comment.id, bow_score]], columns=self.bag_of_words_scores.columns.values.tolist())
                                 
