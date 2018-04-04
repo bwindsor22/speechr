@@ -79,22 +79,7 @@ class SQL_Loader():
         
         if df is not None:
             return self.sql_df_to_array(df,0)
-        
-    def toxic_users(self):
-        text = """select comments.comment_id, comments.author, bow_scores.score as bow_score, keyword_scores.score as keyword_score
-        from comments, bow_scores, keyword_scores 
-        where comments.comment_id = bow_scores.comment_id 
-        and (bow_scores.score >=5 or keyword_scores.score >=5);"""
                 
-        try:
-            df = self.execute_sql(text)
-        except Exception as e:
-            self.logger.error("error pulling toxic users")
-            return None
-        
-        return df
-
-        
     def sub_log_to_dict(self, result):
         subreddit, dates = [], []
         
