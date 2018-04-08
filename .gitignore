@@ -10,3 +10,4 @@ nohup.out
 .idea/
 site/node_modules/
 *.swp
+site/build/
