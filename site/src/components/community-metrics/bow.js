@@ -1,32 +1,44 @@
 import React from 'react';
-import Plotly from 'plotly.js'
+import Plot from 'react-plotly.js';
 import fetchRates from '../../lib/fetch-rates'
 
 export default class BOW extends React.Component{
   state = {
+      loaded:false,
       chart_data: [],
-      layout:{}
+      layout:{
+        autosize: true,
+        title: 'Percent Hate Speech by Community (BOW Classifier)',
+        yaxis: {
+          tickformat: ',.0%',
+        }
+      }
+  }
+
+  updateChartData = (chart_data) => {
+    console.log(chart_data);
+    this.setState({chart_data:chart_data})
+    this.setState({loaded:true})
   }
 
   componentWillMount() {
-    var chart_data = fetchRates('percent_bow_hate')
-    this.setState({chart_data:chart_data})
-    this.setState({layout:{
-      autosize: true,
-      title: 'Percent Hate Speech by Community (BOW Classifier)',
-      yaxis: {
-        tickformat: ',.0%',
-      }
-    }})
+    fetchRates('percent_bow_hate')
+      .then((data) => this.updateChartData(data))
   }
 
-  componentDidMount() {
-    Plotly.newPlot('bow-plot', this.state.chart_data, this.state.layout);
-  }
 
   render() {
     return (
-      <div id="bow-plot" style={{width:'1200px', height:'600px'}}> </div>
+      <div>
+      { this.state.loaded ?
+        <Plot
+        data={this.state.chart_data}
+        layout={this.state.layout}
+        style={{width:'1200px', height:'600px'}}
+        />
+        : <h1> Loading .. </h1>
+      }
+      </div>
     );
   }
 };

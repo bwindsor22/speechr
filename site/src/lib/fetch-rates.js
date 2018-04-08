@@ -15,55 +15,52 @@ function getMock(endpoint) {
   return mock[endpoint]
 }
 
+
+
 function fetchRates( endpoint ) {
-  var environment = 'LOCAL_NO_API'
+  var environment = 'PROD'
 
   console.log("loading data");
-  var data = []
   var url
   if (environment === 'LOCAL_NO_API') {
-    data = getMock(endpoint)
+    return getMock(endpoint)
   } else {
     if (environment === 'PROD') {
-      // var proxyUrl = 'https://cors-anywhere.herokuapp.com/'
+      var proxyUrl = 'https://cors-anywhere.herokuapp.com/'
       var targetUrl = 'http://18.218.128.141:5000/'
-      // url = proxyUrl + targetUrl + endpoint
-      url = targetUrl + endpoint
+      url = proxyUrl + targetUrl + endpoint
       console.log(url);
     } else if (environment === 'LOCAL'){
       var localUrl = 'localhost:5000/'
       url = localUrl + endpoint
     }
-    fetch(url)
+    return fetch(url)
       .then(response => response.json())
-      .then(json => {
-        data = json
-      })
-      .catch((error) => {
-          console.error(error);
-      });
+      .then((data) => processData(data))
+  }
+}
+
+function processData(data) {
+    console.log('loaded data');
+
+    var keys = Object.keys(data[0]);
+    keys = keys.filter(key => key !== "date")
+
+    var dates = data.map(data => data.date);
+
+    var chart_data = []
+    keys.forEach( key => {
+        var series_data = data.map(data => data[key]);
+        var series_obj = {
+          type: 'scatter',
+          x: dates,
+          y: series_data,
+          name: key
+        }
+        chart_data.push(series_obj)
+    })
+
+    return chart_data
   }
 
-  console.log('loaded data');
-
-  var keys = Object.keys(data[0]);
-  keys = keys.filter(key => key !== "date")
-
-  var dates = data.map(data => data.date);
-  console.log(keys);
-
-  var chart_data = []
-  keys.forEach( key => {
-      var series_data = data.map(data => data[key]);
-      var series_obj = {
-        type: 'scatter',
-        x: dates,
-        y: series_data,
-        name: key
-      }
-      chart_data.push(series_obj)
-  })
-
-  return(chart_data)
-}
 export default fetchRates
