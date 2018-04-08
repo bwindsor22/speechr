@@ -3,6 +3,7 @@
 """
 Created on Tue Mar  6 23:17:01 2018
 """
+
 from speechr import sql_loader
 from speechr import config_logging_setup
 from speechr.endpoints_enum import Endpoints
@@ -17,8 +18,11 @@ class Comment_Rates():
 
     def get_results(self):
         raw_table = self.get_raw_table()
-        pivots = self.pivot_tables(raw_table)
-        return pivots
+        results = self.get_percent_and_scanned_total(raw_table)
+        
+        results[Endpoints.rolling_total_hate] = self.get_rolling_total(raw_table)
+        
+        return results
 
     def get_raw_table(self):
         sql = '''
@@ -26,29 +30,43 @@ class Comment_Rates():
             select subreddit, 
                     date(time_scanned) date_scanned,
                     sum(comments_scanned) as total_scanned,
-                    sum(keyword_hate_comments) as keyword_hate,
-                    sum(bow_hate_comments) as bow_hate
+                    sum(keyword_hate_comments) as total_keyword_hate,
+                    sum(bow_hate_comments) as total_bow_hate
             from comment_count_per_subreddit 
+            where time_scanned >= date_trunc('day', NOW() - interval '2 months')
             group by subreddit, date_scanned
         )
         select subreddit, date_scanned, total_scanned, 
-                keyword_hate, keyword_hate / total_scanned as "%%_keyword_hate",
-                bow_hate, bow_hate / total_scanned as "%%_bow_hate"
+                total_keyword_hate, 
+                total_keyword_hate / total_scanned as "percent_keyword_hate",
+                total_bow_hate,
+                total_bow_hate / total_scanned as "percent_bow_hate"
         from base;
         '''
         return self.DB.read_sql(sql)
     
-    def pivot_tables(self, df):
-        pivots = {}
-        pivots[Endpoints.total_scanned] = \
-            pd.pivot_table(df, values='total_scanned', index=['date_scanned'], columns=['subreddit'])
-        pivots[Endpoints.percent_keyword_hate] = \
-            pd.pivot_table(df, values='%_keyword_hate', index=['date_scanned'], columns=['subreddit'])
-        pivots[Endpoints.percent_bow_hate] = \
-            pd.pivot_table(df, values='%_bow_hate', index=['date_scanned'], columns=['subreddit'])
+    def get_percent_and_scanned_total(self, raw_table):
+        results = {}
+
+        results[Endpoints.total_scanned] = \
+            pd.pivot_table(raw_table, values='total_scanned', index=['date_scanned'], columns=['subreddit'])
+
+        results[Endpoints.percent_keyword_hate] = \
+            pd.pivot_table(raw_table, values='percent_keyword_hate', index=['date_scanned'], columns=['subreddit'])
+            
+        results[Endpoints.percent_bow_hate] = \
+            pd.pivot_table(raw_table, values='percent_bow_hate', index=['date_scanned'], columns=['subreddit'])
         
-        for name, vals in pivots.items():
-            pivots[name]['date'] = vals.index.astype(str)
-        return pivots
+        for name, vals in results.items():
+            results[name]['date'] = vals.index.astype(str)
+            
+        return results
+    
+    def get_rolling_total(self, raw_table):
+        grouped = raw_table.groupby('subreddit').sum()
+        grouped['subreddit'] = grouped.index.astype(str)
+        grouped = grouped[['subreddit', 'total_bow_hate', 'total_keyword_hate']]
+        return grouped
+        
         
     

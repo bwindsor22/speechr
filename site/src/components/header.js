@@ -13,7 +13,7 @@ export default class MenuExampleSecondary extends Component {
         <Dropdown item text='Community Metrics' onClick={this.handleItemClick}>
           <Dropdown.Menu>
             <Dropdown.Item href='/community_trends'>Community Trends</Dropdown.Item>
-            <Dropdown.Item href='/summary_volumes'>Summary - Volume by Community</Dropdown.Item>
+            <Dropdown.Item href='/summary_volumes'>Volume by Community</Dropdown.Item>
             <Dropdown.Item href='/total_scanned'>Total Comments Scanned</Dropdown.Item>
 
           </Dropdown.Menu>

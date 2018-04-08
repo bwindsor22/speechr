@@ -6,5 +6,6 @@ class Endpoints(Enum):
     times_refreshed = 'times_refreshed'
     
     total_scanned = 'total_scanned'
+    rolling_total_hate = 'rolling_total_hate'
     percent_keyword_hate = 'percent_keyword_hate'
     percent_bow_hate = 'percent_bow_hate'

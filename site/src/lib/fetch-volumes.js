@@ -9,13 +9,12 @@ function getMock(endpoint) {
 }
 
 function fetchVolumes( endpoint ) {
-  var environment = 'PROD'
+  var environment = 'LOCAL_MOCK'
 
   console.log("loading data");
-  var data = []
   var url
   if (environment === 'LOCAL_MOCK') {
-    data = getMock(endpoint)
+    return processData(getMock(endpoint))
   } else {
     if (environment === 'PROD') {
       var proxyUrl = 'https://cors-anywhere.herokuapp.com/'
@@ -25,13 +24,14 @@ function fetchVolumes( endpoint ) {
       var localUrl = 'localhost:5000/'
       url = localUrl + endpoint
     }
-    fetch(url)
+    console.log(url);
+    return fetch(url)
       .then(response => response.json())
-      .catch((error) => {
-          console.error(error);
-      });
+      .then((data) => processData(data))
   }
+}
 
+function processData(data) {
   console.log('loaded data');
 
   var keys = Object.keys(data[0]);
@@ -54,4 +54,6 @@ function fetchVolumes( endpoint ) {
 
   return(chart_data)
 }
+
+
 export default fetchVolumes
