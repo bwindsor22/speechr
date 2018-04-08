@@ -34,12 +34,44 @@ function fetchRates( endpoint ) {
     console.log(url);
     return fetch(url)
       .then(response => response.json())
-      .then((data) => processData(data))
+      .then((data) => processData(data, endpoint))
   }
 }
 
-function processData(data) {
-    console.log('loaded data');
+function processData(data, endpoint) {
+  console.log('loaded data');
+  switch (endpoint) {
+    case 'rolling_total_hate':
+      return processVolumeData(data)
+    default:
+      return processRatesData(data)
+  }
+}
+
+function processVolumeData(data) {
+
+  var keys = Object.keys(data[0]);
+  keys = keys.filter(key => key !== "subreddit")
+
+  var communities = data.map(data => data.subreddit);
+
+  var chart_data = []
+  keys.forEach( key => {
+      var series_data = data.map(data => data[key]);
+      var series_obj = {
+        type: 'bar',
+        x: communities,
+        y: series_data,
+        name: key
+      }
+      chart_data.push(series_obj)
+  })
+
+  return(chart_data)
+}
+
+
+function processRatesData(data) {
 
     var keys = Object.keys(data[0]);
     keys = keys.filter(key => key !== "date")
@@ -60,5 +92,7 @@ function processData(data) {
 
     return chart_data
   }
+
+
 
 export default fetchRates

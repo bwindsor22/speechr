@@ -1,29 +1,34 @@
 import React from 'react';
-import Plotly from 'plotly.js'
-import fetchVolumes from '../../lib/fetch-volumes'
+import Plot from 'react-plotly.js';
+import fetchRates from '../../lib/fetch-rates'
 
 export default class SummaryVolumes extends React.Component{
   state = {
+      loaded:false,
       chart_data: [],
-      layout:{}
+      layout:{
+        autosize: true,
+        title: 'Hate Speech Volume by Community',
+      }
   }
 
   componentWillMount() {
-    var chart_data = fetchVolumes('rolling_total_hate')
-    this.setState({chart_data:chart_data})
-    this.setState({layout:{
-      autosize: true,
-      title: 'Hate Speech Volume by Community',
-    }})
-  }
-
-  componentDidMount() {
-    Plotly.newPlot('volume-plot', this.state.chart_data, this.state.layout);
+    fetchRates('rolling_total_hate')
+      .then((chart_data) => this.setState({chart_data}))
+      .then(this.setState({loaded:true}))
   }
 
   render() {
     return (
-      <div id="volume-plot" style={{width:'1200px', height:'600px'}}> </div>
-    );
+      <div>
+      { this.state.loaded ?
+        <Plot
+        data={this.state.chart_data}
+        layout={this.state.layout}
+        style={{width:'1200px', height:'600px'}}
+        />
+        : <h1> Loading .. </h1>
+      }
+    </div>   );
   }
 };
