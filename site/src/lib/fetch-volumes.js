@@ -9,12 +9,12 @@ function getMock(endpoint) {
 }
 
 function fetchVolumes( endpoint ) {
-  var environment = 'LOCAL_NO_API'
+  var environment = 'PROD'
 
   console.log("loading data");
   var data = []
   var url
-  if (environment === 'LOCAL_NO_API') {
+  if (environment === 'LOCAL_MOCK') {
     data = getMock(endpoint)
   } else {
     if (environment === 'PROD') {
@@ -27,9 +27,6 @@ function fetchVolumes( endpoint ) {
     }
     fetch(url)
       .then(response => response.json())
-      .then(json => {
-        data = json
-      })
       .catch((error) => {
           console.error(error);
       });

@@ -8,8 +8,7 @@ import {
 import Header from './header.js'
 
 import HateVolumes from './community-metrics/summary-volumes.js'
-import BOW from './community-metrics/bow.js'
-import Keyword from './community-metrics/keyword.js'
+import CommunityTrends from './community-metrics/community-trends.js'
 import TotalScanned from './community-metrics/total-scanned.js'
 
 import ToxicUsers from './user-metrics/most-toxic-users.js'
@@ -25,11 +24,10 @@ class App extends Component {
 
           <Router onUpdate={() => window.scrollTo(0, 0)}>
             <Switch>
-              <Route exact path="/" component={BOW} />
+              <Route exact path="/" component={CommunityTrends} />
 
               <Route path="/summary_volumes" component={HateVolumes} />
-              <Route path="/trends_bow" component={BOW} />
-              <Route path="/trends_keyword" component = {Keyword} />
+              <Route path="/community_trends" component={CommunityTrends} />
               <Route path="/total_scanned" component={TotalScanned} />
 
               <Route path="/most_toxic_users" component={ToxicUsers} />

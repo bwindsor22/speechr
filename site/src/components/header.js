@@ -12,11 +12,9 @@ export default class MenuExampleSecondary extends Component {
       <Menu pointing size='large'>
         <Dropdown item text='Community Metrics' onClick={this.handleItemClick}>
           <Dropdown.Menu>
+            <Dropdown.Item href='/community_trends'>Community Trends</Dropdown.Item>
             <Dropdown.Item href='/summary_volumes'>Summary - Volume by Community</Dropdown.Item>
-            <Dropdown.Item href='/summary_percent'>Summary - % Hate by Community </Dropdown.Item>
-            <Dropdown.Item href='/trends_bow'>Trends - BOW Detection</Dropdown.Item>
-            <Dropdown.Item href='/trends_keyword'>Trends - Keyword Detection</Dropdown.Item>
-            <Dropdown.Item href='/total_scanned'>Trends - Total Comments Scanned</Dropdown.Item>
+            <Dropdown.Item href='/total_scanned'>Total Comments Scanned</Dropdown.Item>
 
           </Dropdown.Menu>
         </Dropdown>

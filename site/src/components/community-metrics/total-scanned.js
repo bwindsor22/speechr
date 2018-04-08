@@ -1,29 +1,35 @@
 import React from 'react';
-import Plotly from 'plotly.js'
+import Plot from 'react-plotly.js';
 import fetchRates from '../../lib/fetch-rates'
 
 export default class BOW extends React.Component{
   state = {
+      loaded: false,
       chart_data: [],
-      layout:{}
+      layout:{
+        autosize: true,
+        title: 'Total Comments Scanned',
+      }
   }
 
   componentWillMount() {
-    var chart_data = fetchRates('daily_total_scanned')
-    this.setState({chart_data:chart_data})
-    this.setState({layout:{
-      autosize: true,
-      title: 'Total Comments Scanned',
-    }})
-  }
-
-  componentDidMount() {
-    Plotly.newPlot('total-scanned-plot', this.state.chart_data, this.state.layout);
+    fetchRates('total_scanned')
+    .then((data) => {this.setState({chart_data:data})})
+    .then(() => {this.setState({loaded:true})})
   }
 
   render() {
     return (
-      <div id="total-scanned-plot" style={{width:'1200px', height:'600px'}}> </div>
+      <div>
+      { this.state.loaded ?
+        <Plot
+        data={this.state.chart_data}
+        layout={this.state.layout}
+        style={{width:'1200px', height:'600px'}}
+        />
+        : <h1> Loading .. </h1>
+      }
+      </div>
     );
   }
 };
