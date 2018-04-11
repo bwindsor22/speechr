@@ -20,6 +20,7 @@ import BagOfWordsClassifier
 import hate_subreddit_finder
 import sql_loader
 import resource_loader
+import get_toxic_users
 
 class Crawler:
     def __init__(self):
@@ -42,7 +43,8 @@ class Crawler:
         
         self.DB = sql_loader.SQL_Loader(self.app_config)
         self.subreddit_last_scanned_dates = self.DB.pull_sub_log()
-                
+        
+        self.toxic_users = get_toxic_users.Toxic_Users()        
 
                 
     def collect(self):
@@ -51,7 +53,6 @@ class Crawler:
         
         hate_subs = self.HRS.find_unique_hate_subreddits(self.number_of_hate_subs)
         self.logger.info('hate subs: ' + str(hate_subs))
-        """CHANGE THIS"""
         columns = ['comment_id','author', 'created_utc', 'permalink','subreddit', 'vote_score', 'body', 'time_analyzed']
         self.potential_hate_comments = pd.DataFrame(data=np.zeros((0,len(columns))), columns=columns)
         
@@ -122,7 +123,6 @@ class Crawler:
             self.logger.debug('comment {}, keyword {}, bow {}'.format(comment.body, keyword_score, bow_score))
             
             if keyword_score > 0 or bow_score > 0:            
-                # print(redditor_list)
                 time = datetime.datetime.utcfromtimestamp( comment.created_utc )
                 current_time = datetime.datetime.utcnow()
                 temp_df = pd.DataFrame([[comment.id, \
@@ -166,6 +166,8 @@ class Crawler:
         self.collect()
         self.log_current_run()
         self.load_summary_to_db()
+        self.toxic_users.run()
+        
 
     def log_current_run(self):
         self.logger.info('recording results of run...')
@@ -186,6 +188,7 @@ class Crawler:
         hate_sub_reports = self.HRS.get_hate_sub_reports(-1)
         self.DB.load_df(hate_sub_reports, 'hate_sub_reports', 'append')                                
         self.DB.load_df(self.scanned_hate_subs, 'scanned_log', 'append')
+        
            
     def get_last_scan(self, subreddit):
         if self.subreddit_last_scanned_dates == None:
@@ -196,6 +199,6 @@ class Crawler:
         else:
             return self.subreddit_last_scanned_dates.get(subreddit)
 
-if __name__ == "__main__":
-    b = Crawler()
-    b.run()
+#if __name__ == "__main__":
+   #b = Crawler()
+    #b.run()
