@@ -25,46 +25,61 @@ class Toxic_Users():
         
     def get_raw_table(self):
         
-        sql = """ WITH temp AS
-        ( 
-        SELECT comments.author AS author, comments.comment_id AS comment_id, bow_scores.score AS bow_score, 
-        comments.created_utc AS created_utc 
-        FROM comments 
-        INNER JOIN bow_scores ON (comments.comment_id = bow_scores.comment_id and bow_scores.score >=5)
-        )
-        SELECT temp.author, temp.comment_id, temp.bow_score, keyword_scores.score as keyword_score, temp.created_utc
-        FROM keyword_scores
-        INNER JOIN temp ON (temp.comment_id = keyword_scores.comment_id)
-        ;"""
-        
-        """SELECT temp.author, temp.comment_id, temp.bow_score, keyword_scores.score as keyword_score, temp.created_utc
-        FROM temp
-        INNER JOIN keyword_scores ON (temp.comment_id = keyword_scores.comment_id and keyword_scores.score >=5)"""
-        #and  now()::timestamp - comments.created_utc < interval '1 days';"""
-        
+        sql = """
+            WITH temp AS(
+            SELECT comment_id, MAX(score) as bow_score FROM bow_scores
+            GROUP BY comment_id
+            ), 
+            temp1 AS(
+            SELECT comment_id, MAX(score) as keyword_score FROM keyword_scores
+            GROUP BY comment_id
+            )
+            SELECT DISTINCT comments.author AS author, comments.comment_id as comment_id, temp.bow_score as bow_score,
+            temp1.keyword_score as keyword_score, comments.created_utc AS created_utc
+            
+            FROM comments
+            INNER JOIN temp ON (comments.comment_id = temp.comment_id and temp.bow_score >= 5)
+            INNER JOIN temp1 ON (comments.comment_id = temp1.comment_id)
+            ;
+        """
+
         return self.DB.execute_sql(sql)
     
     def store_data(self):
         
-        toxic_user_report_cols = ['comment_id', 'user', 'bow_score', 'keyword_score']
+        toxic_user_report_cols = ['comment_id', 'user', 'bow_score', 'keyword_score', 'created_utc']
         self.toxic_user_report = pd.DataFrame(data=np.zeros((0,len(toxic_user_report_cols))), columns=toxic_user_report_cols)
         
         report = self.get_raw_table()
-        print(report.rowcount, "comments found from the following SQL query")
+        #print(report.rowcount, "comments found from the following SQL query")
         
-        for _ in report:
-            temp_df = pd.DataFrame([[_[0], _[1], _[2], _[3]]], columns=toxic_user_report_cols)
-    
-            self.toxic_user_report = self.toxic_user_report.append(temp_df, ignore_index = True)
-                        
+        temp_time = self.most_recent_scan_time()
+        temp_time1 = temp_time.iloc[0]
+        reference_time = temp_time1[0]
+        
+        if not reference_time:
+            for _ in report:
+                temp_df = pd.DataFrame([[_[0], _[1], _[2], _[3], _[4]]], columns=toxic_user_report_cols)
+                self.toxic_user_report = self.toxic_user_report.append(temp_df, ignore_index = True)
+        else:
+            for _ in report:
+                if _[4]-reference_time:
+                    temp_df = pd.DataFrame([[_[0], _[1], _[2], _[3], _[4]]], columns=toxic_user_report_cols)
+                    self.toxic_user_report = self.toxic_user_report.append(temp_df, ignore_index = True)
+                                        
         # add load DB, need to account for remove duplicates
         self.DB.load_df(self.toxic_user_report, 'toxic_user_report','append')
+        
+    def most_recent_scan_time(self):
+        sql = """SELECT MAX(time_ran_utc) from scanned_log;"""
+        
+        return self.DB.read_sql(sql)
         
     def run(self):
         self.get_users()
         self.store_data()
         
         
-if __name__ == "__main__":
+"""if __name__ == "__main__":
     b = Toxic_Users()
-    b.run()
+    b.run()"""
