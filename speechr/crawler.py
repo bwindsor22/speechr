@@ -99,7 +99,7 @@ class Crawler:
 
     def load_comments_to_db(self, comment_list):
         columns = ['comment_id','author', 'created_utc', 'permalink','subreddit', 'vote_score', 'body', 'time_analyzed']
-        potential_hate_comments = pd.DataFrame(data=np.zeros((0,len(columns))), columns=columns)
+        potential_hate_comments = pd.DataFrame(data=np.zeros((0, len(columns))), columns=columns)
 
     def log_current_run(self, subreddit_scan_time):
         self.logger.info('recording results of run...')
