@@ -1,11 +1,11 @@
 {
 	"reddit_bot":"bot1",
 	"DB":{
-	    "user":"sys_speechr",
-	    "passwd": "pass",
-	    "host":"localhost",
+	    "user":"p2speechr",
+	    "passwd": "speechr123",
+	    "host":"comments01.cpwa0ujlkpmx.us-east-1.rds.amazonaws.com",
 	    "port":5432,
-	    "db_name":"example"
+	    "db_name":"comments01"
     },
     "crawler":{
     	"num_hate_subs":5,

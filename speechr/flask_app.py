@@ -16,8 +16,7 @@ class FlaskApp:
         self.app.add_url_rule('/rolling_total_hate',   Endpoints.rolling_total_hate.name,        self.rolling_total_hate)
         self.app.add_url_rule('/percent_keyword_hate', Endpoints.percent_keyword_hate.name, self.percent_keyword_hate)
         self.app.add_url_rule('/percent_bow_hate',     Endpoints.percent_bow_hate.name,     self.percent_bow_hate)
-        
-        
+
         self.app.run(host='0.0.0.0')
     
     def status(self):

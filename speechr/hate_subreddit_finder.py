@@ -35,11 +35,14 @@ class HateSubredditFinder:
         unique_subs = self.hate_sub_reports.subreddit_linked.unique()
         unique_subs = unique_subs.tolist()
         
-        archive_subs_set = set(archive_subs)
-        unique_subs_set = set(unique_subs)
-        archive_unique_subs = archive_subs_set - unique_subs_set
-
-        return unique_subs + list(archive_unique_subs)
+        if archive_subs is not None:
+            archive_subs_set = set(archive_subs)
+            unique_subs_set = set(unique_subs)
+            archive_unique_subs = archive_subs_set - unique_subs_set
+            
+            return unique_subs + list(archive_unique_subs)
+        else:
+            return unique_subs
 
     def get_hate_sub_reports(self, lim):
         if not self.collected:

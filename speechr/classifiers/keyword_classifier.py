@@ -8,7 +8,7 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from nltk.stem.snowball import SnowballStemmer
 
 
-class CommentClassifier:
+class KeywordClassifier:
     def __init__(self, slurs, violent_words):
         self.slurs = [s.lower() for s in slurs]
         self.violent_words = [v.lower() for v in violent_words]

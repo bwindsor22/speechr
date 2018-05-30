@@ -4,11 +4,12 @@
 Created on Sun Jan  7 18:47:01 2018
 """
 import pytest
-from speechr import comment_classifier
+from speechr.classifiers import keyword_classifier
+
 
 @pytest.fixture
 def CC():
-    return comment_classifier.CommentClassifier(["Test_Slur_1", "Test_Slur_2"], ["A"])
+    return keyword_classifier.CommentClassifier(["Test_Slur_1", "Test_Slur_2"], ["A"])
 
 def test_subword_not_found():
     comments = ["test_slur_1_extension"]

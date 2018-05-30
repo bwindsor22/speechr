@@ -12,6 +12,7 @@ import os
 import pickle
 from speechr import TDFClassifierPrepare 
 
+
 class BagOfWordsClassifier:
     def __init__(self):
         app_path = os.path.dirname(os.path.abspath(__file__))

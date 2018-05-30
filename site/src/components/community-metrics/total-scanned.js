@@ -14,8 +14,8 @@ export default class BOW extends React.Component{
 
   componentWillMount() {
     fetchRates('total_scanned')
-    .then((data) => {this.setState({chart_data:data})})
-    .then(() => {this.setState({loaded:true})})
+     .then((data) => {this.setState({chart_data:data})})
+     .then(() => {this.setState({loaded:true})})
   }
 
   render() {

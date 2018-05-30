@@ -29,11 +29,15 @@ class Cache_Helper():
     def refresh_cache(self):
         self.refresh_raw_queries()
         self.refresh_comment_rates()
-
+        self.refresh_other_cache_part()
+        
         self.cache[Endpoints.times_refreshed] = self.increment_refresh_count()
     
 
         return self.cache
+    
+    def refresh_other_cache_part(self):
+        self.cache[myOtherPart] = {};
     
     def refresh_raw_queries(self):
         statements = self.get_sql_statements()

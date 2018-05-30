@@ -4,11 +4,12 @@
 Created on Sun Jan  7 18:47:01 2018
 """
 import pytest
-from speechr import BagOfWordsClassifier
+from speechr.classifiers import bow_classifier
+
 
 @pytest.fixture
 def BOWC():
-    return BagOfWordsClassifier.BagOfWordsClassifier()
+    return bow_classifier.BagOfWordsClassifier()
 
 def test_false_positives_are_zero():
     comments = [
