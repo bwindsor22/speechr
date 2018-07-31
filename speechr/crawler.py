@@ -16,6 +16,7 @@ import logging
 import config_logging_setup
 import hate_subreddit_finder
 import sql_loader
+import config_logging_setup
 
 
 class Crawler:
@@ -53,9 +54,10 @@ class Crawler:
             self.logger.info('--------------------------')
 
             subreddit_comment_counter = 0
-            subreddit_scan_time = datetime.datetime.utcnow()
             subreddit = self.reddit.subreddit(subreddit_name)
             try:
+                subreddit_scan_time = datetime.datetime.utcnow()
+
                 last_scan_time = self.get_last_scan(subreddit_name)
                 self.logger.info('last scan time {} '.format(str(last_scan_time)))
                 subreddit_comments = []
@@ -73,7 +75,7 @@ class Crawler:
                         subreddit_comments.extend(comment_list)
 
                 #Processor.process(subreddit_comments)
-                self.load_comments_to_db(subreddit_comments)
+                self.load_comments_to_db(subreddit_comments, subreddit_scan_time)
 
             except NotFound:
                 self.logger.info('Subreddit {} not found'.format(subreddit_name))
@@ -97,9 +99,14 @@ class Crawler:
     def record_comment_count(self, comment_count_per_scan):
         self.DB.load_df(comment_count_per_scan, 'comment_count_per_subreddit', 'append')
 
-    def load_comments_to_db(self, comment_list):
-        columns = ['comment_id','author', 'created_utc', 'permalink','subreddit', 'vote_score', 'body', 'time_analyzed']
-        potential_hate_comments = pd.DataFrame(data=np.zeros((0, len(columns))), columns=columns)
+    def load_comments_to_db(self, subreddit_comments, subreddit_scan_time):
+        columns = ['id','author', 'created_utc', 'permalink','subreddit', 'vote_score', 'body', 'time_analyzed']
+        comments_list = []
+        for comment in subreddit_comments:
+            comments_list.append([comment.id, comment.author.name, comment.created_utc, comment.permalink,
+                                            comment.subreddit.display_name, comment.score, comment.body, subreddit_scan_time])
+        comments_df = pd.DataFrame(comments_list, columns=columns)
+        self.DB.load_df(comments_df, 'comments', 'append')
 
     def log_current_run(self, subreddit_scan_time):
         self.logger.info('recording results of run...')
@@ -135,5 +142,6 @@ class Crawler:
         self.log_current_run()
 
 if __name__ == "__main__":
+ config_logging_setup.setup_logging()
  b = Crawler()
  b.run()
