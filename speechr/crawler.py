@@ -66,9 +66,9 @@ class Crawler:
 
                 for submission in submissions:
                     if datetime.datetime.utcfromtimestamp(submission.created_utc) > last_scan_time - self.offset:
-                        submission.comments.replace_more(limit=0)
+                        submission.comments.replace_more(limit=100)
                         comment_list = submission.comments.list()
-                        self.logger.debug('.. found {} comments'.format(len(comment_list)))
+                        self.logger.info('.. found {} comments'.format(len(comment_list)))
 
                         subreddit_comment_counter += len(comment_list)
 
@@ -76,6 +76,7 @@ class Crawler:
 
                 #Processor.process(subreddit_comments)
                 self.load_comments_to_db(subreddit_comments, subreddit_scan_time)
+                self.log_subreddit_processed(subreddit, subreddit_scan_time)
 
             except NotFound:
                 self.logger.info('Subreddit {} not found'.format(subreddit_name))
@@ -111,27 +112,19 @@ class Crawler:
         comments_df = pd.DataFrame(comments_list, columns=columns)
         self.DB.load_df(comments_df, 'comments', 'append')
 
-    def log_current_run(self, subreddit_scan_time):
-        self.logger.info('recording results of run...')
+    def log_subreddit_processed(self, subreddit, subreddit_scan_time):
+        self.logger.info('recording subreddit {} processed at {}...'.format(subreddit, subreddit_scan_time))
 
-        scanned_hate_subs = self.HRS.find_unique_hate_subreddits(self.number_of_hate_subs)
         columns = ['time_ran_utc', 'subreddit']
-        self.scanned_hate_subs = pd.DataFrame(data=np.zeros((0, len(columns))), columns=columns)
+        scanned_hate_subs = pd.DataFrame([[subreddit_scan_time, subreddit.display_name]], columns=columns)
 
-        for subreddit in scanned_hate_subs:
-            temp_df = pd.DataFrame([[subreddit_scan_time, subreddit]], columns=columns)
-            self.scanned_hate_subs = self.scanned_hate_subs.append(temp_df, ignore_index=True)
+        self.DB.load_df(scanned_hate_subs, 'scanned_log', 'append')
 
     def log_hate_sub_reports(self):
         hate_sub_reports = self.HRS.get_hate_sub_reports(-1)
         self.DB.load_df(hate_sub_reports, 'hate_sub_reports', 'append')
-        self.DB.load_df(self.scanned_hate_subs, 'scanned_log', 'append')
 
     def get_last_scan(self, subreddit):
-        """
-        :param subreddit:
-        :return: the most recent date this subreddit was scanned, or min date if not scanned
-        """
         if self.subreddit_last_scanned_dates is None:
             return datetime.datetime.min + self.offset
 
@@ -142,6 +135,8 @@ class Crawler:
 
     def run(self):
         self.collect()
+        self.log_hate_sub_reports()
+        self.logger.info("...finished")
 
 if __name__ == "__main__":
  config_logging_setup.setup_logging()
