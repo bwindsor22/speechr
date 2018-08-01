@@ -1,5 +1,7 @@
 Program to detect hate speech on Reddit with the aim of tracking and reporting it. This repository contains reference files with strong language.
 
+![site](https://raw.githubusercontent.com/bwindsor22/speechr/master/speechr/ref/29634694_10156194179469417_1582013879_o.png)
+
 ## Getting Started
 
 1. Clone repository from github 
