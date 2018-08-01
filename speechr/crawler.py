@@ -103,7 +103,10 @@ class Crawler:
         columns = ['id','author', 'created_utc', 'permalink','subreddit', 'vote_score', 'body', 'time_analyzed']
         comments_list = []
         for comment in subreddit_comments:
-            comments_list.append([comment.id, comment.author.name, comment.created_utc, comment.permalink,
+            author = ""
+            if comment.author is not None:
+                author = comment.author.name
+            comments_list.append([comment.id, author, comment.created_utc, comment.permalink,
                                             comment.subreddit.display_name, comment.score, comment.body, subreddit_scan_time])
         comments_df = pd.DataFrame(comments_list, columns=columns)
         self.DB.load_df(comments_df, 'comments', 'append')
@@ -116,7 +119,7 @@ class Crawler:
         self.scanned_hate_subs = pd.DataFrame(data=np.zeros((0, len(columns))), columns=columns)
 
         for subreddit in scanned_hate_subs:
-            temp_df = pd.DataFrame([[time_run, subreddit]], columns=columns)
+            temp_df = pd.DataFrame([[subreddit_scan_time, subreddit]], columns=columns)
             self.scanned_hate_subs = self.scanned_hate_subs.append(temp_df, ignore_index=True)
 
     def log_hate_sub_reports(self):
@@ -139,7 +142,6 @@ class Crawler:
 
     def run(self):
         self.collect()
-        self.log_current_run()
 
 if __name__ == "__main__":
  config_logging_setup.setup_logging()
