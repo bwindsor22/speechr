@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "bootstrap": "^3.3.7",
-    "highcharts": "^6.0.3",
+    "highcharts": "^7.2.2",
     "plotly": "^1.0.6",
     "plotly.js": "^1.35.2",
     "react": "^16.1.1",
